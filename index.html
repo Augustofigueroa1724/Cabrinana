@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cabriñana · Cuadro de mando</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F2E9; --paper-2:#FBF8F1; --ink:#23271E; --ink-soft:#5A5F4F;
+    --olive:#5C6B36; --olive-d:#43501F; --olive-l:#8A9A5B;
+    --ochre:#B5641C; --ochre-l:#D08A3E;
+    --line:#E0D8C6; --line-2:#CFC6B0;
+    --pos:#3E7C4F; --neg:#A9382F; --neg-bg:#F3E3DF; --pos-bg:#E4EBDD;
+    --shadow:0 1px 0 rgba(35,39,30,.04), 0 8px 28px -16px rgba(35,39,30,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:
+      radial-gradient(120% 80% at 100% 0%, #EFE9DA 0%, transparent 55%),
+      radial-gradient(90% 60% at 0% 100%, #EEE7D6 0%, transparent 50%),
+      var(--paper);
+    color:var(--ink); font-family:"IBM Plex Sans",sans-serif; line-height:1.45;
+    padding:clamp(16px,3vw,44px); min-height:100vh;
+  }
+  .num{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+  .wrap{max-width:1180px;margin:0 auto}
+  header.top{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between;
+    padding-bottom:22px;border-bottom:2px solid var(--ink)}
+  .brand .eyebrow{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--ochre);font-weight:600}
+  .brand h1{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(34px,5.5vw,58px);line-height:.95;
+    letter-spacing:-.01em;margin-top:6px}
+  .brand .sub{color:var(--ink-soft);font-size:14px;margin-top:8px}
+  .brand .sub b{color:var(--ink);font-weight:600}
+  .yearbox{text-align:right}
+  .yearbox label{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  select#year{font-family:"Fraunces",serif;font-weight:600;font-size:30px;color:var(--ink);background:transparent;
+    border:none;border-bottom:2px solid var(--olive);padding:2px 26px 4px 4px;cursor:pointer;
+    appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235C6B36' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 2px center}
+  .yearbox .camp{font-size:12px;color:var(--ink-soft);margin-top:6px}
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:26px 0 34px}
+  @media(max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;padding:15px 14px 14px;
+    box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--olive)}
+  .kpi.accent::before{background:var(--ochre)}
+  .kpi .k-label{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+  .kpi .k-val{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(20px,2.4vw,27px);margin-top:9px;letter-spacing:-.01em}
+  .kpi .k-unit{font-size:12px;color:var(--ink-soft);font-weight:500}
+  .kpi .k-delta{margin-top:7px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+  .delta-pos{color:var(--pos)} .delta-neg{color:var(--neg)} .delta-flat{color:var(--ink-soft)}
+  section{margin:36px 0}
+  .s-head{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+  .s-head h2{font-family:"Fraunces",serif;font-weight:600;font-size:23px;letter-spacing:-.01em}
+  .s-head .s-note{font-size:12.5px;color:var(--ink-soft)}
+  .s-head .rule{flex:1 1 0;height:1px;background:var(--line-2);align-self:center;min-width:0}
+  .card{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  thead th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;
+    text-align:right;padding:13px 16px;background:#EFEADD;border-bottom:1px solid var(--line-2)}
+  thead th:first-child{text-align:left}
+  tbody td{padding:11px 16px;text-align:right;border-bottom:1px solid var(--line)}
+  tbody td:first-child{text-align:left;font-weight:500}
+  tbody tr:last-child td{border-bottom:none}
+  tr.group td{background:#F0EBDE;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--olive-d);padding:8px 16px}
+  tr.total td{font-weight:700;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);background:#EEEAdd}
+  tr.subtotal td{font-weight:600;background:#F4F0E5}
+  td.pos{color:var(--pos)} td.neg{color:var(--neg)}
+  .pill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11.5px;font-weight:600}
+  .pill.pos{background:var(--pos-bg);color:var(--pos)} .pill.neg{background:var(--neg-bg);color:var(--neg)} .pill.flat{background:#ECE7D9;color:var(--ink-soft)}
+  .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:22px}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr}}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:980px){.grid3{grid-template-columns:1fr}}
+  .chart{padding:18px}
+  .bar-row{display:grid;grid-template-columns:96px 1fr 78px;align-items:center;gap:10px;margin:9px 0;font-size:12.5px}
+  .bar-row .lbl{color:var(--ink);font-weight:500}
+  .bar-track{position:relative;height:20px;background:#ECE7D9;border-radius:5px;overflow:hidden}
+  .bar-fill{position:absolute;top:0;bottom:0;border-radius:5px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+  .bar-val{text-align:right;font-weight:600}
+  .div-row{display:grid;grid-template-columns:90px 1fr 86px;align-items:center;gap:10px;margin:9px 0;font-size:12.5px}
+  .div-track{position:relative;height:22px;background:linear-gradient(90deg,transparent 49.6%,var(--line-2) 49.6%,var(--line-2) 50.4%,transparent 50.4%)}
+  .div-fill{position:absolute;top:3px;bottom:3px;border-radius:4px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+  .olive-band{background:linear-gradient(135deg,var(--olive-d),var(--olive));color:#F4F1E6;border-radius:16px;
+    padding:24px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .olive-band::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;
+    background:radial-gradient(circle,rgba(208,138,62,.35),transparent 70%)}
+  .olive-band h3{font-family:"Fraunces",serif;font-weight:600;font-size:20px;margin-bottom:4px}
+  .olive-band .oline{color:#ECE9DE;font-size:13px;max-width:70ch}
+  .ostats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px;position:relative;z-index:1}
+  @media(max-width:760px){.ostats{grid-template-columns:repeat(2,1fr)}}
+  .ostat .o-l{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(244,241,230,.72);font-weight:600}
+  .ostat .o-v{font-family:"Fraunces",serif;font-weight:600;font-size:25px;margin-top:5px}
+  .ostat .o-u{font-size:12px;color:#E0DCCF}
+  .vecrow{display:grid;grid-template-columns:60px 1fr 200px;align-items:center;gap:12px;margin:10px 0;font-size:12.5px}
+  @media(max-width:560px){.vecrow{grid-template-columns:50px 1fr;}.vecrow .vmeta{grid-column:1/-1;text-align:left;padding-left:62px}}
+  .vecrow .vy{font-family:"Fraunces",serif;font-weight:600;font-size:18px}
+  .vmeta{text-align:right;color:var(--ink-soft)}
+  .vmeta b{color:var(--ink)}
+  .vchart{position:relative;display:flex;gap:14px;padding:6px 4px 0}
+  .vcol{flex:1;position:relative}
+  .vb-fill{position:absolute;left:16%;right:16%;border-radius:5px 5px 0 0;min-height:2px;transition:top .8s cubic-bezier(.2,.8,.2,1),height .8s cubic-bezier(.2,.8,.2,1)}
+  .vb-val{position:absolute;left:-6px;right:-6px;text-align:center;font-size:11px;font-weight:600;font-family:"IBM Plex Mono",monospace;letter-spacing:-.02em}
+  .vb-yr{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:11.5px;color:var(--ink-soft);font-family:"IBM Plex Mono",monospace}
+  .vzero{position:absolute;left:0;right:0;height:1px;background:var(--line-2)}
+  footer{margin-top:46px;padding-top:18px;border-top:1px solid var(--line-2);color:var(--ink-soft);font-size:12px;line-height:1.7}
+  footer b{color:var(--ink)}
+  .tag{display:inline-block;background:#ECE7D9;border:1px solid var(--line-2);border-radius:6px;padding:1px 7px;font-family:"IBM Plex Mono",monospace;font-size:11px}
+  .yr{display:inline-block;background:var(--olive);color:#F4F1E6;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;letter-spacing:.02em;white-space:nowrap}
+  .yr-sel{appearance:none;-webkit-appearance:none;background:var(--olive);color:#F4F1E6;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;letter-spacing:.02em;
+    padding:3px 24px 3px 11px;border:none;border-radius:20px;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23F4F1E6' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 8px center}
+  .yr-sel:hover{background-color:var(--olive-d)}
+  .yr-sel:focus{outline:2px solid var(--ochre);outline-offset:1px}
+  .yr-sel option{color:#23271E;background:#FBF8F1;font-weight:500}
+  .prod-sel{appearance:none;-webkit-appearance:none;background:transparent;border:none;
+    border-bottom:2px solid var(--olive);font-family:"Fraunces",serif;font-weight:600;
+    font-size:clamp(22px,3.2vw,31px);line-height:1;color:var(--ink);letter-spacing:-.01em;cursor:pointer;
+    padding:0 34px 4px 2px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%235C6B36' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 4px center}
+  .prod-sel:hover,.prod-sel:focus{border-bottom-color:var(--ochre);outline:none}
+  .prod-sel option{font-family:"IBM Plex Sans",sans-serif;font-size:15px;font-weight:500;color:#23271E;background:#FBF8F1}
+  .s-note.lead{color:var(--ink-soft);font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+  .cf-toggle{cursor:pointer;user-select:none}
+  .cf-tab{font-family:"IBM Plex Sans",sans-serif;font-size:12px;font-weight:600;color:var(--olive-d);
+    background:#ECE7D9;border:1px solid var(--line-2);border-radius:20px;padding:3px 13px;white-space:nowrap}
+  .cf-toggle:hover .cf-tab{background:#E4DECF;border-color:var(--olive-l)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">FARISA, C.B. · Córdoba, España</div>
+      <h1>Cabriñana</h1>
+      <div class="sub">Cuadro de mando de explotación</div>
+    </div>
+    <div class="yearbox">
+      <label>Ejercicio (cierre)</label>
+      <select id="year"></select>
+      <div class="camp" id="campLabel"></div>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section>
+    <div class="s-head">
+      <h2>Cuenta de pérdidas y ganancias</h2>
+      <span class="s-note">Formato analítico · % vertical sobre ingresos totales · crecimiento interanual</span>
+      <span class="rule"></span>
+    </div>
+    <div class="card" style="overflow-x:auto">
+      <table id="pygTable"><thead><tr id="pygHead"></tr></thead><tbody id="pygBody"></tbody></table>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-head cf-toggle" id="cfToggle" role="button" tabindex="0">
+      <h2>Estado de flujos de caja</h2>
+      <span class="cf-tab" id="cfTab">Mostrar ▾</span>
+      <span class="rule"></span>
+    </div>
+    <div id="cfPanel" style="display:none">
+      <div class="s-note" style="margin:0 0 14px">Método indirecto · cuadra con la variación de tesorería · solo ejercicios con balance</div>
+      <div class="card" style="overflow-x:auto">
+        <table id="cfTable"><thead><tr id="cfHead"></tr></thead><tbody id="cfBody"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-head"><h2>Resultado por cultivo</h2><select class="yr-sel" id="cropSel"></select><span class="s-note" id="cropNote"></span><span class="rule"></span></div>
+    <div class="card">
+      <table id="cropTable"><thead><tr>
+        <th>Cultivo</th><th>Ingreso €</th><th>ha</th><th>kg/ha</th><th>€/kg</th>
+        <th>Ingreso €/ha</th><th>Ayudas €/ha</th><th>Gastos €/ha</th>
+        <th>Margen €/ha</th><th>Margen %</th>
+      </tr></thead><tbody id="cropBody"></tbody></table>
+    </div>
+  </section>
+
+  <section>
+    <div class="grid2">
+      <div>
+        <div class="s-head"><h2>Margen neto por cultivo</h2><select class="yr-sel" id="marginSel"></select><span class="rule"></span></div>
+        <div class="card chart" id="marginChart"></div>
+      </div>
+      <div>
+        <div class="s-head"><h2>Mix de superficie</h2><select class="yr-sel" id="mixSel"></select><span class="rule"></span></div>
+        <div class="card chart" id="mixChart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-head"><span class="s-note lead">Foco por producto</span><select class="prod-sel" id="focusProd"></select><select class="yr-sel" id="focusYear"></select><span class="rule"></span></div>
+    <div class="grid3">
+      <div>
+        <div class="s-head"><h2>Ingresos</h2><span class="s-note" id="ingNote"></span><span class="rule"></span></div>
+        <div class="card chart" id="ingChart"></div>
+      </div>
+      <div>
+        <div class="s-head"><h2>Producción total</h2><span class="s-note" id="prodNote"></span><span class="rule"></span></div>
+        <div class="card chart" id="prodChart"></div>
+      </div>
+      <div>
+        <div class="s-head"><h2>Margen neto / ha</h2><span class="s-note" id="margNote"></span><span class="rule"></span></div>
+        <div class="card chart" id="margChart"></div>
+      </div>
+    </div>
+    <div id="priceWrap" style="margin-top:22px;display:none">
+      <div class="s-head"><h2>Precio medio</h2><span class="s-note" id="priceNote"></span><span class="rule"></span></div>
+      <div class="card chart" id="priceChart"></div>
+    </div>
+    <div class="olive-band" id="focusBand" style="margin-top:22px">
+      <h3 id="focusTitle"></h3>
+      <div class="oline" id="oliveLine"></div>
+      <div class="ostats" id="oliveStats"></div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* ============================================================
+   MODELO DE DATOS  ·  un objeto por ejercicio (año de cierre)
+   2025, 2024 = detalle completo por cultivo.
+   2023 = solo P&G de grupo (columna "ejercicio anterior" del informe 2024).
+   Añadir 2022/2021 = añadir objetos con la misma estructura.
+   ============================================================ */
+const DATA = {
+  meta:{ sociedad:"FARISA, C.B.", finca:"Cabriñana", ubicacion:"Córdoba, España" },
+  años:{
+    "2025":{
+      campaña:"2024/25", cierre:"31/12/2025", superficie_has:277.07, gerencia_pct:0.05, capex:155881.47, cashflow:27340.37, cf:{caja_ini:7258.55, var_circ:-117989.16, capex_inkind:155881.47},
+      pyg:{ ventas:385527.40, subvenciones:102649.00, otros:4863.04,
+            compras:164267.57, servicios:91392.54, personal:100943.77,
+            tributos:8017.33, amortizacion:44497.49, excepcionales:0.00 },
+      cultivos:[
+        {n:"Olivar",   has:72.28, kg:362362, kg_ha:5013, precio:0.5575, ing_ha:2794.69, ayudas_ha:227.49, gcult_ha:1393.44, gmaq_ha:126.22, ggral_ha:564.75, neto_ha:937.75},
+        {n:"Trigo duro",has:96.95, kg:443880, kg_ha:4578, precio:0.2684, ing_ha:1237.92, ayudas_ha:388.55, gcult_ha:765.99,  gmaq_ha:126.22, ggral_ha:564.75, neto_ha:169.50},
+        {n:"Garbanzos",has:27.87, kg:35549,  kg_ha:1276, precio:0.6000, ing_ha:765.32,  ayudas_ha:456.19, gcult_ha:402.66,  gmaq_ha:126.22, ggral_ha:564.75, neto_ha:127.87},
+        {n:"Cebada",   has:21.26, kg:90140,  kg_ha:4240, precio:0.2050, ing_ha:878.07,  ayudas_ha:388.55, gcult_ha:605.77,  gmaq_ha:126.22, ggral_ha:564.75, neto_ha:-30.13},
+        {n:"Avena",    has:33.41, kg:259900, kg_ha:7779, precio:0.0400, ing_ha:311.16,  ayudas_ha:455.50, gcult_ha:187.61,  gmaq_ha:126.22, ggral_ha:564.75, neto_ha:-111.93},
+        {n:"Guisantes",has:25.30, kg:47700,  kg_ha:1885, precio:0.2750, ing_ha:518.48,  ayudas_ha:456.49, gcult_ha:455.53,  gmaq_ha:126.22, ggral_ha:564.75, neto_ha:-171.55}
+      ],
+      olivar_inv:{ has_actuales:72.28, has_nuevas:21.32, importe_nuevo:155881.47, inversion_previa:266289.92, amort_anual:13314.50 }
+    },
+    "2024":{
+      campaña:"2023/24", cierre:"31/12/2024", superficie_has:276.95, gerencia_pct:0.05, capex:840.01, cashflow:-32722.38, cf:{caja_ini:39980.93, var_circ:223179.99, capex_inkind:0},
+      pyg:{ ventas:676901.36, subvenciones:106352.81, otros:9233.36,
+            compras:200864.21, servicios:95407.09, personal:97163.73,
+            tributos:8085.28, amortizacion:44497.49, excepcionales:16681.78 },
+      cultivos:[
+        {n:"Olivar",   has:50.96, kg:702285, kg_ha:13781, precio:0.5567, ing_ha:7671.53, ayudas_ha:296.41, gcult_ha:2495.95, gmaq_ha:128.66, ggral_ha:522.42, neto_ha:4820.91},
+        {n:"Trigo duro",has:90.06, kg:467590, kg_ha:5192, precio:0.3085, ing_ha:1621.46, ayudas_ha:366.82, gcult_ha:876.04,  gmaq_ha:128.66, ggral_ha:522.42, neto_ha:461.16},
+        {n:"Cebada",   has:43.35, kg:227200, kg_ha:5241, precio:0.2928, ing_ha:1554.30, ayudas_ha:366.82, gcult_ha:731.07,  gmaq_ha:128.66, ggral_ha:522.42, neto_ha:538.97},
+        {n:"Girasol",  has:28.57, kg:51060,  kg_ha:1787, precio:0.5751, ing_ha:1027.77, ayudas_ha:335.77, gcult_ha:297.54,  gmaq_ha:128.66, ggral_ha:522.42, neto_ha:414.91},
+        {n:"Guisantes",has:27.93, kg:82620,  kg_ha:2958, precio:0.3438, ing_ha:1017.12, ayudas_ha:396.83, gcult_ha:404.59,  gmaq_ha:128.66, ggral_ha:522.42, neto_ha:358.27},
+        {n:"Avena",    has:26.31, kg:219950, kg_ha:8360, precio:0.0672, ing_ha:561.79,  ayudas_ha:427.88, gcult_ha:304.48,  gmaq_ha:128.66, ggral_ha:522.42, neto_ha:34.09},
+        {n:"Barbecho", has:9.77,  kg:0,      kg_ha:0,    precio:0.0000, ing_ha:0.00,    ayudas_ha:335.77, gcult_ha:10.96,   gmaq_ha:128.66, ggral_ha:522.42, neto_ha:-326.27}
+      ],
+      olivar_inv:{ has_actuales:50.96, has_nuevas:0, importe_nuevo:0, inversion_previa:266289.92, amort_anual:13314.50 }
+    },
+    "2023":{
+      campaña:"2022/23", cierre:"31/12/2023", superficie_has:277.30, gerencia_pct:0.05, capex:null, cashflow:null,
+      pyg:{ ventas:416549.97, subvenciones:119219.79, otros:0.00,
+            compras:173242.78, servicios:55832.18, personal:100086.01,
+            tributos:8164.82, amortizacion:44691.17, excepcionales:1840.54 },
+      cultivos:[
+        {n:"Olivar",   has:50.96, kg:250503, kg_ha:4916, precio:1.1776, ing_ha:5788.85, ayudas_ha:355.15, gcult_ha:1924.15, gmaq_ha:91.54, ggral_ha:441.74, neto_ha:3686.57},
+        {n:"Trigo duro",has:129.90,kg:102860, kg_ha:792,  precio:0.2540, ing_ha:691.77,  ayudas_ha:352.97, gcult_ha:706.80,  gmaq_ha:91.54, ggral_ha:441.74, neto_ha:-195.34},
+        {n:"Cebada",   has:33.41, kg:26570,  kg_ha:795,  precio:0.2531, ing_ha:431.45,  ayudas_ha:352.97, gcult_ha:546.52,  gmaq_ha:91.54, ggral_ha:441.74, neto_ha:-295.39},
+        {n:"Habas",    has:25.39, kg:8080,   kg_ha:318,  precio:0.4000, ing_ha:234.55,  ayudas_ha:431.74, gcult_ha:293.73,  gmaq_ha:91.54, ggral_ha:441.74, neto_ha:-160.73},
+        {n:"Colza",    has:21.26, kg:2310,   kg_ha:109,  precio:0.4442, ing_ha:274.86,  ayudas_ha:352.97, gcult_ha:631.18,  gmaq_ha:91.54, ggral_ha:441.74, neto_ha:-536.63},
+        {n:"Avena",    has:16.38, kg:36500,  kg_ha:2228, precio:0.1500, ing_ha:334.25,  ayudas_ha:432.34, gcult_ha:313.37,  gmaq_ha:91.54, ggral_ha:441.74, neto_ha:-80.08}
+      ],
+      olivar_inv:{ has_actuales:50.96, has_nuevas:0, importe_nuevo:0, inversion_previa:266289.92, amort_anual:13314.50 }
+    },
+    "2022":{
+      campaña:"2021/22", cierre:"31/12/2022", superficie_has:277.28, gerencia_pct:0.05, capex:null, cashflow:null,
+      pyg:{ ventas:387638.02, subvenciones:109754.89, otros:2573.42,
+            gastos_total:382202.65,
+            compras:null, servicios:null, personal:null, tributos:null, amortizacion:null, excepcionales:null,
+            g_cultivos:223694.97, g_maquinaria:36625.54, g_generales:121882.14 },
+      cultivos:[
+        {n:"Olivar",   has:50.96, kg:208314, kg_ha:4088, precio:0.7224, ing_ha:2952.97, ayudas_ha:358.48, gcult_ha:1630.96, gmaq_ha:110.52, ggral_ha:430.74, neto_ha:1139.23},
+        {n:"Trigo duro",has:96.47, kg:275480, kg_ha:2856, precio:0.5019, ing_ha:1433.22, ayudas_ha:358.48, gcult_ha:714.86,  gmaq_ha:110.52, ggral_ha:430.74, neto_ha:535.57},
+        {n:"Colza",    has:27.98, kg:20635,  kg_ha:737,  precio:2.0426, ing_ha:1506.41, ayudas_ha:387.07, gcult_ha:1222.18, gmaq_ha:110.52, ggral_ha:430.74, neto_ha:130.03},
+        {n:"Guisantes",has:37.64, kg:106100, kg_ha:2819, precio:0.2909, ing_ha:819.89,  ayudas_ha:408.96, gcult_ha:495.91,  gmaq_ha:110.52, ggral_ha:430.74, neto_ha:191.68},
+        {n:"Garbanzos",has:40.47, kg:22753,  kg_ha:562,  precio:0.7546, ing_ha:424.27,  ayudas_ha:358.48, gcult_ha:322.23,  gmaq_ha:110.52, ggral_ha:430.74, neto_ha:-80.74},
+        {n:"Avena",    has:23.76, kg:121000, kg_ha:5093, precio:0.0720, ing_ha:366.67,  ayudas_ha:410.25, gcult_ha:240.53,  gmaq_ha:110.52, ggral_ha:430.74, neto_ha:-4.88}
+      ],
+      olivar_inv:null
+    }
+    // "2021":{...}  ← al recibir el informe
+  }
+};
+
+function _grp(s){ return s.replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+function _fmt(v,dec){            // importes y cantidades: separador de miles
+  if(v==null||isNaN(v)) return '—';
+  const neg=v<0; const x=Math.abs(v);
+  let s=(dec===0)?String(Math.round(x)):x.toFixed(dec);
+  let p=s.split('.'); p[0]=_grp(p[0]);
+  return (neg?'-':'')+(p[1]!=null?p[0]+','+p[1]:p[0]);
+}
+function _fmtP(v,dec){           // porcentajes: sin separador de miles
+  if(v==null||isNaN(v)) return '—';
+  const neg=v<0; const x=Math.abs(v);
+  let s=(dec===0)?String(Math.round(x)):x.toFixed(dec);
+  return (neg?'-':'')+s.replace('.',',');
+}
+const nf0={format:v=>_fmt(v,0)};
+const nf1={format:v=>_fmt(v,1)};
+const nf4={format:v=>_fmt(v,4)};
+const eur = v => (v==null?'—':_fmt(v,0)+' €');
+const eurHa = v => (v==null?'—':_fmt(v,0));
+const pct = v => (v==null?'—':_fmtP(v,1)+' %');
+const signPct = v => (v==null?'—':(v>0?'+':'')+_fmtP(v,1)+' %');
+
+/* color estable por producto (mismo código en mix y en foco) */
+const PROD_COLORS={
+  'Olivar':'#5C6B36', 'Trigo duro':'#B8862B', 'Cebada':'#9C6B2E', 'Avena':'#8F8B3C',
+  'Guisantes':'#5E8C4A', 'Garbanzos':'#A86E3A', 'Girasol':'#C9952B', 'Colza':'#7E9A2E', 'Barbecho':'#7C7458', 'Habas':'#8A5A3C'
+};
+const prodColor = n => PROD_COLORS[n] || '#5C6B36';
+
+function pyg(y){
+  const p = DATA.años[y].pyg, g = DATA.años[y].gerencia_pct;
+  const ingresos = p.ventas + p.subvenciones + p.otros;
+  const groups=[p.compras,p.servicios,p.personal,p.tributos,p.amortizacion,p.excepcionales];
+  const hasGroups = groups.every(v=>typeof v==='number');
+  const gastos = hasGroups ? groups.reduce((a,b)=>a+b,0) : p.gastos_total;
+  const bExpl = ingresos - gastos;
+  const gerencia = bExpl * g;
+  const bNeto = bExpl - gerencia;
+  return {...p, ingresos, gastos, bExpl, gerencia, bNeto, hasGroups, capex:DATA.años[y].capex, cashflow:DATA.años[y].cashflow,
+    margenExpl: bExpl/ingresos*100, margenNeto: bNeto/ingresos*100, depSubv: p.subvenciones/ingresos*100};
+}
+
+const years = Object.keys(DATA.años).sort((a,b)=>b-a);
+let current = years[0];
+const prevOf = y => { const i=years.indexOf(y); return years[i+1]||null; };
+
+const sel = document.getElementById('year');
+years.forEach(y=>{ const o=document.createElement('option'); o.value=y; o.textContent=y; sel.appendChild(o); });
+sel.value=current;
+sel.addEventListener('change',()=>{ current=sel.value; renderKPIs(); renderPyG(); });
+
+/* años con detalle por cultivo (desc) y estado independiente por sección */
+const cropYears = years.filter(y=>DATA.años[y].cultivos);
+let yCrop=cropYears[0], yMargin=cropYears[0], yMix=cropYears[0];
+const allProducts=(()=>{const seen=[];years.forEach(y=>{const c=DATA.años[y].cultivos; if(c) c.forEach(x=>{if(!seen.includes(x.n)) seen.push(x.n);});});return seen;})();
+function yearsForProduct(p){ return years.filter(y=>{const c=DATA.años[y].cultivos; return c && c.find(x=>x.n===p);}); }
+let fProd = allProducts.includes('Olivar')?'Olivar':allProducts[0];
+let fYear = yearsForProduct(fProd)[0];
+function setOptions(id,list,val){ const s=document.getElementById(id); if(!s) return; s.innerHTML=list.map(y=>`<option value="${y}"${y===val?' selected':''}>${y}</option>`).join(''); s.value=val; }
+function fillSel(id, list, val, onChange){
+  const s=document.getElementById(id); if(!s) return;
+  s.innerHTML=list.map(y=>`<option value="${y}"${y===val?' selected':''}>${y}</option>`).join('');
+  s.value=val;
+  s.addEventListener('change',()=>onChange(s.value));
+}
+
+function deltaCell(cur,prev,invert){
+  if(prev==null||prev===0) return {cls:'delta-flat',txt:'s/ comparable'};
+  let d=(cur-prev)/Math.abs(prev)*100;
+  let good = invert ? d<0 : d>0;
+  let cls = Math.abs(d)<0.05?'delta-flat':(good?'delta-pos':'delta-neg');
+  let arr = Math.abs(d)<0.05?'→':(d>0?'▲':'▼');
+  return {cls, txt:arr+' '+signPct(d)+' vs '+prevOf(current)};
+}
+function renderKPIs(){
+  const c=pyg(current); const pv=prevOf(current)?pyg(prevOf(current)):null;
+  const sup=DATA.años[current].superficie_has;
+  const items=[
+    {l:'Ingresos totales', v:eur(c.ingresos), d:deltaCell(c.ingresos, pv?pv.ingresos:null,false)},
+    {l:'Bº explotación', v:eur(c.bExpl), d:deltaCell(c.bExpl, pv?pv.bExpl:null,false), accent:true},
+    {l:'Margen explotación', v:pct(c.margenExpl), d:deltaCell(c.margenExpl, pv?pv.margenExpl:null,false)},
+    {l:'Bº neto', v:eur(c.bNeto), d:deltaCell(c.bNeto, pv?pv.bNeto:null,false), accent:true},
+    {l:'Resultado / ha', v:sup?eurHa(c.bExpl/sup)+' €':'—', u:'€/ha',
+       d:{cls:'delta-flat',txt:sup?('sup. '+nf0.format(sup)+' ha'):'sup. n/d'}},
+    {l:'Dependencia subvenciones', v:pct(c.depSubv), d:deltaCell(c.depSubv, pv?pv.depSubv:null,true)}
+  ];
+  document.getElementById('kpis').innerHTML = items.map(it=>`
+    <div class="kpi ${it.accent?'accent':''}">
+      <div class="k-label">${it.l}</div>
+      <div class="k-val">${it.v} ${it.u?`<span class="k-unit">${it.u}</span>`:''}</div>
+      <div class="k-delta ${it.d.cls}">${it.d.txt}</div>
+    </div>`).join('');
+}
+
+function renderPyG(){
+  const prev=prevOf(current);
+  const yearsAsc=years.slice().sort((a,b)=>a-b);
+  const M={}; yearsAsc.forEach(y=>M[y]=pyg(y));
+  const c=M[current]; const pv=prev?M[prev]:null;
+  const dLbl = prev?`Δ% ${current.slice(2)}/${prev.slice(2)}`:'Δ%';
+  document.getElementById('pygHead').innerHTML =
+    `<th>Concepto</th>`+yearsAsc.map(y=>`<th>${y===current?'★ ':''}${y}</th>`).join('')+`<th>${dLbl}</th><th>% s/ingr. ${current.slice(2)}</th>`;
+  const span=yearsAsc.length+3;
+  const row=(label,key,opt)=>{
+    opt=opt||{};
+    const cells=yearsAsc.map(y=>`<td class="num"${y===current?' style="font-weight:600"':''}>${eur(M[y][key])}</td>`).join('');
+    const cur=c[key]; const old=pv?pv[key]:null;
+    let d=(cur==null||old==null||old===0)?null:(cur-old)/Math.abs(old)*100;
+    const vert = (cur==null)?null:cur/c.ingresos*100;
+    const dPill = d==null?'<span class="pill flat">—</span>'
+      : `<span class="pill ${(opt.invert? d<0:d>0)?'pos':(Math.abs(d)<0.05?'flat':'neg')}">${signPct(d)}</span>`;
+    return `<tr class="${opt.cls||''}">
+      <td>${label}</td>${cells}
+      <td>${opt.noDelta?'':dPill}</td>
+      <td class="num">${opt.noVert?'':(vert==null?'—':_fmtP(vert,1)+' %')}</td></tr>`;
+  };
+  let h='';
+  h+=`<tr class="group"><td colspan="${span}">Ingresos de explotación</td></tr>`;
+  h+=row('Ventas','ventas',{});
+  h+=row('Subvenciones de explotación','subvenciones',{});
+  h+=row('Otros ingresos','otros',{});
+  h+=row('Total ingresos','ingresos',{cls:'subtotal'});
+  h+=`<tr class="group"><td colspan="${span}">Gastos de explotación</td></tr>`;
+  h+=row('Compras (consumos)','compras',{invert:true});
+  h+=row('Trabajos y servicios','servicios',{invert:true});
+  h+=row('Gastos de personal','personal',{invert:true});
+  h+=row('Tributos','tributos',{invert:true});
+  h+=row('Amortizaciones','amortizacion',{invert:true});
+  h+=row('Gastos excepcionales','excepcionales',{invert:true});
+  h+=row('Total gastos','gastos',{cls:'subtotal',invert:true});
+  h+=row('Resultado de explotación','bExpl',{cls:'total'});
+  h+=row('Participación gerencia (5%)','gerencia',{invert:true});
+  h+=row('Resultado neto','bNeto',{cls:'subtotal'});
+  h+=`<tr class="group"><td colspan="${span}">Inversión del ejercicio (memorándum)</td></tr>`;
+  h+=row('Capex · altas de inmovilizado','capex',{noDelta:true});
+  h+=row('Cash flow neto · variación de tesorería','cashflow',{noDelta:true,noVert:true});
+  document.getElementById('pygBody').innerHTML=h;
+}
+
+function renderCF(){
+  const ys=years.filter(y=>DATA.años[y].cf).slice().sort((a,b)=>a-b); // asc
+  document.getElementById('cfHead').innerHTML=`<th>Concepto</th>`+ys.map(y=>`<th>${y}</th>`).join('');
+  const M={};
+  ys.forEach(y=>{
+    const p=pyg(y), cf=DATA.años[y].cf;
+    const operativo=p.bExpl+p.amortizacion+cf.var_circ;
+    const capex=DATA.años[y].capex||0;
+    const trasInv=operativo-capex;
+    const neto=DATA.años[y].cashflow;
+    const socios=neto-trasInv;
+    M[y]={cajaIni:cf.caja_ini, bExpl:p.bExpl, amort:p.amortizacion, varCirc:cf.var_circ,
+      operativo, capex:-capex, trasInv, socios, neto, cajaFin:cf.caja_ini+neto,
+      socios_capex:cf.capex_inkind, socios_otros:socios-cf.capex_inkind};
+  });
+  const r=(label,key,cls,ind)=>`<tr class="${cls||''}"><td${ind?' style="padding-left:30px;font-weight:400;color:var(--ink-soft)"':''}>${label}</td>`+
+    ys.map(y=>`<td class="num"${ind?' style="color:var(--ink-soft)"':''}>${eur(M[y][key])}</td>`).join('')+`</tr>`;
+  let h='';
+  h+=r('Caja al inicio del ejercicio','cajaIni','subtotal');
+  h+=r('Resultado de explotación','bExpl');
+  h+=r('(+) Amortizaciones','amort');
+  h+=r('(±) Variación de circulante','varCirc');
+  h+=r('= Cash flow operativo','operativo','subtotal');
+  h+=r('(-) Capex','capex');
+  h+=r('= Cash flow tras inversión','trasInv','subtotal');
+  h+=r('(±) Aportación de socios','socios');
+  h+=r('financia capex (en especie)','socios_capex','',true);
+  h+=r('otros movimientos con la propiedad','socios_otros','',true);
+  h+=r('= Cash flow neto','neto','total');
+  h+=r('Caja al final del ejercicio','cajaFin','subtotal');
+  document.getElementById('cfBody').innerHTML=h;
+}
+
+function renderCrops(y){
+  const cult=DATA.años[y].cultivos;
+  const note=document.getElementById('cropNote');
+  if(!cult){
+    note.textContent='Sin detalle por cultivo en este ejercicio.';
+    document.getElementById('cropBody').innerHTML=`<tr><td colspan="10" style="text-align:center;color:var(--ink-soft);padding:26px">Solo P&G de grupo · ${y} sin detalle por cultivo</td></tr>`;
+    return;
+  }
+  note.textContent='Gastos generales y maquinaria asignados por hectárea · margen neto resultante';
+  const rows = cult.map(c=>{
+    const gastos=c.gcult_ha+c.gmaq_ha+c.ggral_ha;
+    const base=c.ing_ha+c.ayudas_ha;
+    const margenPct = base>0 ? c.neto_ha/base*100 : null;
+    const cls=c.neto_ha>=0?'pos':'neg';
+    return `<tr>
+      <td>${c.n}</td>
+      <td class="num">${eur(c.ing_ha*c.has)}</td>
+      <td class="num">${nf1.format(c.has)}</td>
+      <td class="num">${c.kg_ha>0?nf0.format(c.kg_ha):'—'}</td>
+      <td class="num">${c.precio>0?nf4.format(c.precio):'—'}</td>
+      <td class="num">${eurHa(c.ing_ha)}</td>
+      <td class="num">${eurHa(c.ayudas_ha)}</td>
+      <td class="num">${eurHa(gastos)}</td>
+      <td class="num ${cls}">${c.neto_ha<0?'-':''}${eurHa(Math.abs(c.neto_ha))}</td>
+      <td class="num ${cls}">${margenPct==null?'—':(margenPct<0?'-':'')+_fmtP(Math.abs(margenPct),1)+' %'}</td>
+    </tr>`;
+  }).join('');
+  const sHa=cult.reduce((s,c)=>s+c.has,0);
+  const sIng=cult.reduce((s,c)=>s+c.ing_ha*c.has,0);
+  const sAyu=cult.reduce((s,c)=>s+c.ayudas_ha*c.has,0);
+  const sGas=cult.reduce((s,c)=>s+(c.gcult_ha+c.gmaq_ha+c.ggral_ha)*c.has,0);
+  const sNeto=cult.reduce((s,c)=>s+c.neto_ha*c.has,0);
+  const mPct=(sIng+sAyu)>0? sNeto/(sIng+sAyu)*100:null;
+  const tcls=sNeto>=0?'pos':'neg';
+  const total=`<tr class="total">
+    <td>Total / media</td>
+    <td class="num">${eur(sIng)}</td>
+    <td class="num">${nf1.format(sHa)}</td>
+    <td class="num">—</td>
+    <td class="num">—</td>
+    <td class="num">${eurHa(sIng/sHa)}</td>
+    <td class="num">${eurHa(sAyu/sHa)}</td>
+    <td class="num">${eurHa(sGas/sHa)}</td>
+    <td class="num ${tcls}">${sNeto<0?'-':''}${eurHa(Math.abs(sNeto/sHa))}</td>
+    <td class="num ${tcls}">${mPct==null?'—':(mPct<0?'-':'')+_fmtP(Math.abs(mPct),1)+' %'}</td>
+  </tr>`;
+  document.getElementById('cropBody').innerHTML = rows + total;
+}
+
+function renderMargin(y){
+  const c=DATA.años[y].cultivos; const el=document.getElementById('marginChart');
+  if(!c){el.innerHTML='<div style="color:var(--ink-soft);font-size:13px">Sin detalle por cultivo.</div>';return;}
+  renderMarginChart(c);
+}
+function renderMix(y){
+  const c=DATA.años[y].cultivos; const el=document.getElementById('mixChart');
+  if(!c){el.innerHTML='<div style="color:var(--ink-soft);font-size:13px">Sin detalle por cultivo.</div>';return;}
+  renderMixChart(c);
+}
+
+
+function renderMarginChart(cult){
+  const sorted=[...cult].sort((a,b)=>b.neto_ha-a.neto_ha);
+  const max=Math.max(...sorted.map(c=>Math.abs(c.neto_ha)));
+  document.getElementById('marginChart').innerHTML = sorted.map(c=>{
+    const w=Math.abs(c.neto_ha)/max*50; const pos=c.neto_ha>=0;
+    return `<div class="div-row">
+      <span class="lbl">${c.n}</span>
+      <div class="div-track"><div class="div-fill" style="background:${pos?'var(--olive)':'var(--neg)'};${pos?`left:50%;width:${w}%`:`right:50%;width:${w}%`}"></div></div>
+      <span class="bar-val num" style="color:${pos?'var(--pos)':'var(--neg)'}">${pos?'':'-'}${eurHa(Math.abs(c.neto_ha))} €</span>
+    </div>`;
+  }).join('');
+}
+
+function renderMixChart(cult){
+  const total=cult.reduce((s,c)=>s+c.has,0);
+  const sorted=[...cult].sort((a,b)=>b.has-a.has);
+  document.getElementById('mixChart').innerHTML = sorted.map(c=>{
+    const p=c.has/total*100;
+    return `<div class="bar-row" style="grid-template-columns:96px 1fr 110px">
+      <span class="lbl">${c.n}</span>
+      <div class="bar-track"><div class="bar-fill" style="background:${prodColor(c.n)};width:${p}%"></div></div>
+      <span class="bar-val num">${nf1.format(c.has)} ha · ${_fmtP(p,0)}%</span></div>`;
+  }).join('') + `<div style="margin-top:12px;font-size:11.5px;color:var(--ink-soft)">Superficie total: <b class="num">${nf1.format(total)} ha</b></div>`;
+}
+
+function renderFocusBand(){
+  const d=DATA.años[fYear]; const ol=d.cultivos.find(c=>c.n===fProd);
+  document.getElementById('focusTitle').textContent=fProd;
+  document.getElementById('focusBand').style.background=
+    `linear-gradient(135deg, rgba(22,24,16,.60), rgba(22,24,16,.22)), ${prodColor(fProd)}`;
+  const netoAgregado=d.cultivos.reduce((s,c)=>s+c.neto_ha*c.has,0);
+  const aporte=ol.neto_ha*ol.has;
+  const contrib=aporte/netoAgregado*100;
+  let line=`Campaña ${d.campaña}. ${fProd} ocupa ${nf1.format(ol.has)} ha (${_fmtP(ol.has/d.superficie_has*100,0)}% de la superficie) y aporta `+
+    `<b style="color:#fff">${eur(aporte)}</b> de margen neto, el <b style="color:#fff">${_fmtP(contrib,0)}%</b> del agregado por cultivos.`;
+  if(fProd==='Olivar' && d.olivar_inv && d.olivar_inv.has_nuevas>0){
+    line+=` Nueva plantación en curso de ${nf1.format(d.olivar_inv.has_nuevas)} ha (${eur(d.olivar_inv.importe_nuevo)}), aún sin entrar en producción.`;
+  }
+  document.getElementById('oliveLine').innerHTML=line;
+  const stats=[
+    {l:'Superficie', v:nf1.format(ol.has), u:'ha cultivadas'},
+    {l:'Producción', v: ol.kg>0?nf0.format(ol.kg/1000):'—', u: ol.kg>0?('t · '+nf0.format(ol.kg_ha)+' kg/ha'):'sin cosecha'},
+    {l:'Precio medio', v: ol.precio>0?nf4.format(ol.precio):'—', u:'€/kg'},
+    {l:'Margen neto', v:eurHa(ol.neto_ha)+' €', u:'por hectárea'}
+  ];
+  document.getElementById('oliveStats').innerHTML=stats.map(s=>`<div class="ostat"><div class="o-l">${s.l}</div><div class="o-v num">${s.v}</div><div class="o-u">${s.u}</div></div>`).join('');
+}
+
+function fmtKg(v){ return v>=100000 ? _fmt(v/1000,0)+' t' : _fmt(v,0)+' kg'; }
+
+function hRow(label, widthPct, color, valText, negVal, hi){
+  return `<div class="bar-row" style="grid-template-columns:50px 1fr 124px">
+    <span class="lbl num"${hi?' style="color:var(--ochre);font-weight:700"':''}>${label}</span>
+    <div class="bar-track"><div class="bar-fill" style="background:${color};width:${Math.max(widthPct,1.5)}%${hi?'':';opacity:.82'}"></div></div>
+    <span class="bar-val num" style="color:${negVal?'var(--neg)':'var(--ink)'}">${valText}</span>
+  </div>`;
+}
+
+function renderFocusCharts(){
+  const ys=yearsForProduct(fProd).slice().reverse(); // ascendente
+  const get=y=>DATA.años[y].cultivos.find(x=>x.n===fProd);
+  const color=prodColor(fProd);
+
+  const ing=ys.map(y=>({yr:y, val:get(y).ing_ha*get(y).has}));
+  const maxI=Math.max(...ing.map(d=>d.val),1);
+  document.getElementById('ingChart').innerHTML =
+    ing.map(d=>hRow(d.yr, d.val/maxI*100, color, _fmt(d.val,0)+' €', false, d.yr===fYear)).join('');
+  document.getElementById('ingNote').textContent=fProd+' · ventas del cultivo (€)';
+
+  const prod=ys.map(y=>({yr:y, val:get(y).kg}));
+  const maxP=Math.max(...prod.map(d=>d.val),1);
+  document.getElementById('prodChart').innerHTML =
+    prod.map(d=>hRow(d.yr, d.val/maxP*100, color, fmtKg(d.val), false, d.yr===fYear)).join('');
+
+  const marg=ys.map(y=>({yr:y, val:get(y).neto_ha}));
+  const maxM=Math.max(...marg.map(d=>Math.abs(d.val)),1);
+  document.getElementById('margChart').innerHTML = marg.map(d=>{
+    const pos=d.val>=0; const w=Math.abs(d.val)/maxM*50; const hi=d.yr===fYear;
+    return `<div class="div-row" style="grid-template-columns:50px 1fr 116px">
+      <span class="lbl num"${hi?' style="color:var(--ochre);font-weight:700"':''}>${d.yr}</span>
+      <div class="div-track"><div class="div-fill" style="background:${pos?color:'var(--neg)'};${pos?`left:50%;width:${w}%`:`right:50%;width:${w}%`}${hi?'':';opacity:.82'}"></div></div>
+      <span class="bar-val num" style="color:${pos?'var(--ink)':'var(--neg)'}">${_fmt(d.val,0)} €/ha</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('prodNote').textContent=fProd+' · kilos recolectados';
+  document.getElementById('margNote').textContent=fProd+' · €/ha por campaña';
+
+  const pw=document.getElementById('priceWrap');
+  if(fProd==='Olivar'){
+    pw.style.display='';
+    const price=ys.map(y=>({yr:y, val:get(y).precio}));
+    const maxPr=Math.max(...price.map(d=>d.val),0.0001);
+    document.getElementById('priceChart').innerHTML =
+      price.map(d=>hRow(d.yr, d.val/maxPr*100, color, nf4.format(d.val)+' €/kg', false, d.yr===fYear)).join('');
+    document.getElementById('priceNote').textContent=fProd+' · €/kg por campaña';
+  } else {
+    pw.style.display='none';
+  }
+}
+
+function renderFoot(){
+  document.getElementById('campLabel').textContent='Campaña '+DATA.años[current].campaña;
+  document.getElementById('foot').innerHTML=
+    `<b>${DATA.meta.sociedad}</b> · Finca ${DATA.meta.finca} · ${DATA.meta.ubicacion}. `+
+    `Ejercicios 2022 a 2025 con detalle por cultivo. `+
+    `El desglose de gasto por naturaleza (compras, personal, etc.) procede de la P&G financiera de 2023-2025; en 2022, en formato de cuenta de explotación, se muestra el gasto total. `+
+    `Las ventas de 2022 son ingresos de cultivos de gestión; las de 2023 (cuenta 70) incluyen indemnizaciones de seguro. `+
+    `El capex (altas de inmovilizado) y el cash flow neto (variación de tesorería) proceden del balance de 2024-2025; 2022-2023 no incluyen balance. `+
+    `Histórico 2021 pendiente. Para añadir un ejercicio, incorporar un objeto al bloque <span class="tag">DATA.años</span> con la misma estructura.`;
+}
+
+function render(){
+  renderKPIs(); renderPyG(); renderCF();
+  renderCrops(yCrop); renderMargin(yMargin); renderMix(yMix);
+  renderFocusBand(); renderFocusCharts();
+  renderFoot();
+}
+
+fillSel('cropSel',   cropYears, yCrop,   v=>{ yCrop=v;   renderCrops(v); });
+function syncCropPair(v){
+  yMargin=v; yMix=v;
+  const ms=document.getElementById('marginSel'), xs=document.getElementById('mixSel');
+  if(ms) ms.value=v; if(xs) xs.value=v;
+  renderMargin(v); renderMix(v);
+}
+fillSel('marginSel', cropYears, yMargin, syncCropPair);
+fillSel('mixSel',    cropYears, yMix,    syncCropPair);
+
+setOptions('focusProd', allProducts, fProd);
+setOptions('focusYear', yearsForProduct(fProd), fYear);
+document.getElementById('focusProd').addEventListener('change', e=>{
+  fProd=e.target.value; const ys=yearsForProduct(fProd); fYear=ys[0];
+  setOptions('focusYear', ys, fYear); renderFocusBand(); renderFocusCharts();
+});
+document.getElementById('focusYear').addEventListener('change', e=>{
+  fYear=e.target.value; renderFocusBand(); renderFocusCharts();
+});
+
+(function(){
+  const t=document.getElementById('cfToggle'), pnl=document.getElementById('cfPanel'), tab=document.getElementById('cfTab');
+  function toggle(){ const open=pnl.style.display==='none'; pnl.style.display=open?'':'none'; tab.textContent=open?'Ocultar ▴':'Mostrar ▾'; }
+  if(t){ t.addEventListener('click',toggle);
+    t.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } }); }
+})();
+
+render();
+</script>
+</body>
+</html>
