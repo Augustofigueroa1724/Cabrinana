@@ -35,9 +35,9 @@ mediante **Cloudflare Access (Zero Trust)**:
   - rafael.kindelan@gmail.com
   - kinel73@gmail.com
 
-> ⚠️ **Estado actual:** el sitio está desplegado pero **todavía es público**.
-> La capa de Access está **pendiente** (ver `CLAUDE.md`). Hasta activarla,
-> cualquiera con el enlace ve los datos.
+> ✅ **Estado actual:** Access **activo**. El sitio exige login con Google y solo
+> entran los 4 correos autorizados. Verificado en incógnito: sin login no se ve
+> nada del dashboard.
 
 Para añadir o quitar personas se edita la política de Access en el panel de
 Cloudflare Zero Trust (Access → Applications → esta app → Policies). No requiere

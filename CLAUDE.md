@@ -27,7 +27,7 @@ mando`).
 - **Texto de la página de bloqueo de Access:**
   `Para solicitar acceso, escribe a miguel.kindelan@gmail.com`
 
-## Estado actual (2026-06-07)
+## Estado actual (2026-06-08) — ✅ COMPLETADO
 
 - [x] **Tarea 1** — Localizado el HTML original (`Cabriñana - cuadro de mando.html`).
 - [x] **Tarea 2** — Repo preparado: `index.html` (copia exacta), `.gitignore`,
@@ -36,17 +36,24 @@ mando`).
       no necesario).
 - [x] **Tarea 4** — Cloudflare Pages creado vía **conexión Git** (opción a).
       Desplegado y verificado en navegador: https://cabrinana.pages.dev muestra el
-      dashboard. ⚠️ Aún **público** (sin Access).
-- [ ] **Tarea 5** — Google como Identity Provider en Cloudflare Access. **BLOQUEADO**:
-      al activar Zero Trust, Cloudflare da error de pago genérico
-      ("An unexpected error occurred while processing your payment") con varias
-      tarjetas → parece incidencia del lado de Cloudflare. Pendiente reintentar
-      (revisar https://www.cloudflarestatus.com). Zero Trust plan **Free** ($0,
-      hasta 50 usuarios) exige tener un método de pago registrado.
-- [ ] **Tarea 6** — Aplicación self-hosted en Access + policy Allow con los 4 emails
-      + página de bloqueo. (No empezado.)
-- [ ] **Tarea 7** — Verificación: comprobar en incógnito que la URL NO es accesible
-      sin login. (No empezado.)
+      dashboard.
+- [x] **Tarea 5** — Google como Identity Provider en Cloudflare Access. Resuelto el
+      error de pago (Zero Trust Free activo, team `cabrinana`). IdP Google creado en
+      **Integrations → Identity providers** (panel nuevo "Cloudflare One"); botón
+      **Test** → "Your connection works!". Nota: en el panel nuevo los login methods
+      NO están en Settings, sino en **Integrations**.
+- [x] **Tarea 6** — Aplicación **self-hosted** en **Access controls → Applications**
+      sobre `cabrinana.pages.dev`, solo IdP Google, policy **Allow** "Familia
+      Cabrinana" con regla **Include → Emails** (los 4 correos). Página de bloqueo con
+      el texto indicado.
+- [x] **Tarea 7** — Verificado en **incógnito**: sin login NO se ve el dashboard
+      (pide login Google); con un correo autorizado entra. Access bloqueando OK.
+
+### Notas del panel nuevo (Cloudflare One, jun-2026)
+- Login methods / IdP → **Integrations** (no en Settings → Authentication, que ya no existe).
+- Aplicaciones y policies → **Access controls → Applications**.
+- Al crear la app, el campo **Domain** es un menú que ya ofrece `cabrinana.pages.dev`
+  completo → seleccionarlo y dejar **Subdomain** vacío.
 
 ## Decisiones tomadas
 
