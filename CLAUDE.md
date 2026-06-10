@@ -127,3 +127,33 @@ Diagnóstico/solución:
 
 Nota: Cloudflare Pages NO usa GitHub Actions (la pestaña Actions queda vacía); usa su
 propia app + webhooks. La señal en GitHub es la sección **Deployments/Environments**.
+
+## Asistente "Pregúntame!" (chatbot RAG sobre /docs)
+
+Añadido un chatbot que responde en español SOLO con la info de los documentos de
+`docs/`. Decisiones del usuario: motor **Claude API (Anthropic)**, documentos
+**PDF/Word**.
+
+Arquitectura:
+- **Frontend:** widget (botón flotante "Pregúntame!" + ventana de chat) embebido
+  al final del HTML (`Cabriñana - cuadro de mando.html` e `index.html`). Llama por
+  `fetch` a `/api/chat`.
+- **Backend:** `functions/api/chat.js` (Cloudflare Pages Function). Llama a
+  `https://api.anthropic.com/v1/messages` con `x-api-key` = `env.ANTHROPIC_API_KEY`,
+  `anthropic-version: 2023-06-01`, modelo `claude-opus-4-8` (override con
+  `CHAT_MODEL`). System prompt con anclaje estricto ("responde solo con los
+  documentos; si no está, dilo") + caché de prompt sobre el bloque de documentos.
+- **Documentos:** `scripts/build-kb.mjs` (deps `pdf-parse`, `mammoth`) extrae el
+  texto de `docs/*.{pdf,docx,txt,md}` y genera `functions/api/kb.js` con `KB` y
+  `FILES`. Se ejecuta en el build (`npm run build:kb`). `kb.js` se commitea vacío
+  como fallback.
+
+Pendiente / requiere acción del usuario en Cloudflare (panel normal):
+1. Añadir secreto **`ANTHROPIC_API_KEY`** en Settings → Variables and Secrets.
+2. Poner **Build command** = `npm run build:kb` (output dir `/`).
+3. Subir los PDFs/Word a `docs/` y push.
+
+Notas:
+- La función `/api/chat` queda protegida por Cloudflare Access (mismo dominio).
+- `.doc` antiguo y PDFs escaneados sin OCR no se pueden leer (avisar al usuario).
+- Sin documentos o sin clave, el bot responde con un mensaje claro en vez de fallar.

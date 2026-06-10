@@ -49,3 +49,25 @@ la que esa persona inicia sesión.
 1. Sustituir/editar el original `Cabriñana - cuadro de mando.html`.
 2. Copiarlo sobre `index.html` (`cp "Cabriñana - cuadro de mando.html" index.html`).
 3. `git commit` y `git push` a `main`. Cloudflare Pages redesplegará solo.
+
+## Asistente "Pregúntame!" (chatbot)
+
+Botón flotante arriba a la derecha que abre un chat. Responde en español
+**solo** con la información de los documentos de la carpeta `docs/` (PDF/Word).
+
+- **Frontend:** widget embebido al final del HTML.
+- **Backend:** `functions/api/chat.js` (Cloudflare Pages Function) que llama a la
+  API de Claude (Anthropic). La clave va como **secreto** del proyecto, nunca en
+  el HTML. La ruta queda protegida por Cloudflare Access igual que el resto.
+- **Documentos:** `scripts/build-kb.mjs` extrae el texto de `docs/` en el build
+  (`npm run build:kb`) y lo deja en `functions/api/kb.js`.
+
+### Puesta en marcha en Cloudflare (una vez)
+1. **Variable secreta:** Pages → proyecto `cabrinana` → *Settings → Variables and
+   Secrets* → añade **`ANTHROPIC_API_KEY`** (tipo *Secret*) con tu clave de
+   Anthropic (https://console.anthropic.com → API Keys). (Opcional: `CHAT_MODEL`
+   para cambiar de modelo, p. ej. `claude-haiku-4-5` para abaratar.)
+2. **Comando de build:** Pages → *Settings → Builds & deployments* → **Build
+   command:** `npm run build:kb` (output directory: `/`).
+3. Sube documentos a `docs/` y haz push. Cada deploy reconstruye la base de
+   conocimiento del chatbot.
