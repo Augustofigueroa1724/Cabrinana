@@ -148,12 +148,43 @@ Arquitectura:
   `FILES`. Se ejecuta en el build (`npm run build:kb`). `kb.js` se commitea vacío
   como fallback.
 
-Pendiente / requiere acción del usuario en Cloudflare (panel normal):
-1. Añadir secreto **`ANTHROPIC_API_KEY`** en Settings → Variables and Secrets.
-2. Poner **Build command** = `npm run build:kb` (output dir `/`).
-3. Subir los PDFs/Word a `docs/` y push.
-
 Notas:
 - La función `/api/chat` queda protegida por Cloudflare Access (mismo dominio).
 - `.doc` antiguo y PDFs escaneados sin OCR no se pueden leer (avisar al usuario).
 - Sin documentos o sin clave, el bot responde con un mensaje claro en vez de fallar.
+
+### Estado e iteraciones (2026-06-10)
+
+Documentos: el usuario subió 7 PDFs a `docs/` (originalmente en `Docs/`; se
+consolidó en `docs/` y el script tolera ambas grafías). 2 tenían texto; los 5
+escaneados se pasaron por **OCR** (tesseract `-l spa` + poppler) generando
+`docs/<nombre>.txt` (commiteados). `functions/api/kb.js` ya está commiteado con
+los 7 documentos, así que el bot funciona **sin** configurar build command.
+
+Funcionalidades añadidas al chatbot:
+- **Respuesta-primero + razonamiento**: `thinking:{type:"adaptive"}` y system
+  prompt que obliga a verificar datos antes de responder y a NO autocorregirse
+  (arreglaba errores al comparar cifras). `max_tokens:2048`.
+- **Formato**: el frontend renderiza Markdown ligero (negrita `**` y listas) y
+  **gráficos de barras** (el modelo emite un bloque ```chart``` con JSON
+  {type,title,unit,data:[{label,value}]} y el widget lo dibuja con divs/CSS, sin
+  librerías). Negativos en rojo.
+- **Búsqueda web** (`web_search_20260209`, `max_uses:5`): SOLO para contexto
+  agrícola/mercado (precios, PAC/subvenciones, normativa, tendencias). Regla
+  tajante en el prompt: los datos de la explotación SOLO de los documentos,
+  nunca de internet. Bucle que maneja `stop_reason:"pause_turn"`.
+- **Mascota "Olivo"** (aceituna con ojos): 5 SVG en la raíz (`olivo-icon.svg`,
+  `-thinking.svg` animado con SMIL, `-alert.svg`, `-badge.svg`, `olivo-favicon.svg`).
+  Módulo vanilla `OlivoIcon(el).set("idle"|"thinking"|"alert")` que inyecta el SVG
+  **inline** (para que corra la animación SMIL). Estados: thinking al consultar,
+  idle al acabar, alert en error. Sustituye el icono del botón. Avatar `-badge`
+  en la cabecera del chat. Favicon en `<head>`.
+- **Botón**: fondo blanco (la aceituna verde no se veía sobre verde), mascota a
+  52px, y **centrado** horizontalmente arriba (`left:50%`).
+
+ÚNICO pendiente para que el chatbot responda: que el usuario añada el secreto
+**`ANTHROPIC_API_KEY`** en Cloudflare (Settings → Variables and Secrets) y
+redespliegue. La clave la crea en https://console.anthropic.com (requiere saldo).
+El **build command** `npm run build:kb` es opcional (solo para reprocesar `docs/`
+automáticamente al cambiarlos; si no, se regenera `kb.js` a mano con OCR cuando
+toque).

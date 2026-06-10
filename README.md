@@ -52,22 +52,35 @@ la que esa persona inicia sesión.
 
 ## Asistente "Pregúntame!" (chatbot)
 
-Botón flotante arriba a la derecha que abre un chat. Responde en español
-**solo** con la información de los documentos de la carpeta `docs/` (PDF/Word).
+Botón flotante (mascota "Olivo", una aceituna con ojos) centrado arriba que abre
+un chat. Responde en español con dos fuentes bien separadas:
 
-- **Frontend:** widget embebido al final del HTML.
+- **Datos de la explotación** (P&G, ingresos, gastos, rendimientos, márgenes…):
+  **solo** desde los documentos de `docs/` (PDF/Word). Nunca de internet.
+- **Contexto agrícola/mercado** (precios, PAC/subvenciones, normativa, tendencias):
+  puede consultarlo por **búsqueda web**.
+
+Funciones: respuesta directa primero + detalle, **negrita y listas**, y
+**gráficos de barras** cuando compara series. La mascota cambia de estado
+(reposo / pensando / aviso) según el chat.
+
+- **Frontend:** widget embebido al final del HTML + 5 SVG de la mascota en la raíz.
 - **Backend:** `functions/api/chat.js` (Cloudflare Pages Function) que llama a la
-  API de Claude (Anthropic). La clave va como **secreto** del proyecto, nunca en
-  el HTML. La ruta queda protegida por Cloudflare Access igual que el resto.
-- **Documentos:** `scripts/build-kb.mjs` extrae el texto de `docs/` en el build
-  (`npm run build:kb`) y lo deja en `functions/api/kb.js`.
+  API de Claude (Anthropic) con la herramienta de búsqueda web. La clave va como
+  **secreto** del proyecto, nunca en el HTML. La ruta queda protegida por Access.
+- **Documentos:** `scripts/build-kb.mjs` extrae el texto de `docs/` y lo deja en
+  `functions/api/kb.js` (ya commiteado con el contenido actual, OCR incluido).
 
-### Puesta en marcha en Cloudflare (una vez)
-1. **Variable secreta:** Pages → proyecto `cabrinana` → *Settings → Variables and
-   Secrets* → añade **`ANTHROPIC_API_KEY`** (tipo *Secret*) con tu clave de
-   Anthropic (https://console.anthropic.com → API Keys). (Opcional: `CHAT_MODEL`
-   para cambiar de modelo, p. ej. `claude-haiku-4-5` para abaratar.)
-2. **Comando de build:** Pages → *Settings → Builds & deployments* → **Build
-   command:** `npm run build:kb` (output directory: `/`).
-3. Sube documentos a `docs/` y haz push. Cada deploy reconstruye la base de
-   conocimiento del chatbot.
+### Puesta en marcha en Cloudflare
+1. **Variable secreta (imprescindible):** Pages → proyecto `cabrinana` → *Settings
+   → Variables and Secrets* → añade **`ANTHROPIC_API_KEY`** (tipo *Secret*) con tu
+   clave de Anthropic (https://console.anthropic.com → API Keys) y **redespliega**.
+   (Opcional `CHAT_MODEL`, p. ej. `claude-haiku-4-5` para abaratar.)
+2. **Comando de build (opcional):** *Settings → Builds & deployments* → **Build
+   command** `npm run build:kb` (output `/`). Solo necesario si quieres que al
+   cambiar los documentos de `docs/` se reprocese el texto automáticamente; el
+   conocimiento actual ya está commiteado en `kb.js`.
+
+> Documentos escaneados: los PDF de imagen necesitan OCR. Los actuales ya se
+> pasaron por OCR a `docs/*.txt`. Para PDF nuevos escaneados, sube una versión
+> con texto o pásalos por OCR antes.
