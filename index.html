@@ -723,6 +723,14 @@ render();
   .cbx-bot li{margin:2px 0}
   .cbx-bot strong{font-weight:600}
   .cbx-user{white-space:pre-wrap}
+  .cbx-chart{margin:8px 0;border:1px solid var(--cbx-line);border-radius:10px;padding:8px 10px;background:#faf8f2}
+  .cbx-ct{font-weight:600;font-size:12px;margin-bottom:6px;color:var(--cbx-ink)}
+  .cbx-row{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:11.5px}
+  .cbx-rl{flex:0 0 28%;color:var(--cbx-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cbx-rb{flex:1;background:#ece7d9;border-radius:4px;height:12px;overflow:hidden}
+  .cbx-bar{display:block;height:100%;background:var(--cbx-olive);border-radius:4px}
+  .cbx-bar-neg{background:#a14b3a}
+  .cbx-rv{flex:0 0 auto;text-align:right;font-variant-numeric:tabular-nums;color:var(--cbx-ink)}
   .cbx-user{align-self:flex-end;background:var(--cbx-olive);color:var(--cbx-cream);border-bottom-right-radius:4px}
   .cbx-typing{align-self:flex-start;color:var(--cbx-soft);font-size:13px;font-style:italic;padding:4px 6px}
   #cbx-form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--cbx-line);background:#fff}
@@ -781,10 +789,34 @@ render();
     if(list) out.push('<ul>'+list.join('')+'</ul>');
     return out.join('');
   }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function fmtNum(v){ var n=Number(v); if(!isFinite(n)) return esc(v); return n.toLocaleString('es-ES',{maximumFractionDigits:2}); }
+  function renderChart(js){
+    var spec; try{ spec=JSON.parse(js); }catch(e){ return ''; }
+    if(!spec || !Array.isArray(spec.data) || !spec.data.length) return '';
+    var max=0; spec.data.forEach(function(d){ var v=Math.abs(Number(d.value))||0; if(v>max)max=v; });
+    if(max<=0) max=1;
+    var unit=spec.unit?(' '+esc(spec.unit)):'';
+    var rows=spec.data.map(function(d){
+      var v=Number(d.value)||0, pct=Math.max(2,Math.round(Math.abs(v)/max*100)), neg=v<0;
+      return '<div class="cbx-row"><span class="cbx-rl">'+esc(d.label)+'</span>'
+        +'<span class="cbx-rb"><span class="cbx-bar'+(neg?' cbx-bar-neg':'')+'" style="width:'+pct+'%"></span></span>'
+        +'<span class="cbx-rv">'+fmtNum(v)+unit+'</span></div>';
+    }).join('');
+    return '<div class="cbx-chart">'+(spec.title?'<div class="cbx-ct">'+esc(spec.title)+'</div>':'')+rows+'</div>';
+  }
+  function renderBot(raw){
+    var parts=raw.split(/```chart\s*([\s\S]*?)```/g), html='';
+    for(var i=0;i<parts.length;i++){
+      if(i%2===1) html+=renderChart(parts[i]);
+      else if(parts[i].trim()!=='') html+=renderMd(parts[i]);
+    }
+    return html||renderMd(raw);
+  }
   function addMsg(text, who){
     var d=document.createElement('div');
     d.className='cbx-msg '+(who==='user'?'cbx-user':'cbx-bot');
-    if(who==='user') d.textContent=text; else d.innerHTML=renderMd(text);
+    if(who==='user') d.textContent=text; else d.innerHTML=renderBot(text);
     msgs.appendChild(d); scrollDown(); return d;
   }
   function openPanel(){

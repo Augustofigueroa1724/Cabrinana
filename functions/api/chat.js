@@ -18,6 +18,7 @@ const INSTRUCTIONS = [
   "Antes de responder, comprueba los datos y verifica que la conclusión es correcta; al comparar cifras identifica bien el máximo o el mínimo. NUNCA muestres correcciones, dudas ni frases del tipo «corrijo» en la respuesta: da directamente la conclusión correcta.",
   "Estructura SIEMPRE la respuesta así: primero una frase directa que conteste la pregunta; después, en una línea aparte, el detalle o los datos de apoyo (puedes usar listas con guiones).",
   "Para resaltar puedes usar **negrita** y listas con guiones; no uses otros formatos.",
+  "Cuando la respuesta compare una serie de valores (por ejemplo una magnitud a lo largo de varias campañas o entre cultivos), añade al final un gráfico de barras. Formato EXACTO: una línea con tres comillas invertidas seguidas de la palabra chart, después un JSON con esta forma {\"type\":\"bar\",\"title\":\"Título corto\",\"unit\":\"€/Ha\",\"data\":[{\"label\":\"2021/22\",\"value\":1139.23},{\"label\":\"2022/23\",\"value\":3686.57}]}, y otra línea con tres comillas invertidas. En el JSON usa punto decimal y nunca separador de miles. No incluyas gráfico si no hay una serie de valores comparable.",
 ].join(" ");
 
 function json(data, status = 200) {
