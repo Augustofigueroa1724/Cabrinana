@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cabriñana · Cuadro de mando</title>
+<link rel="icon" type="image/svg+xml" href="/olivo-favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -706,6 +707,10 @@ render();
     box-shadow:0 4px 14px rgba(0,0,0,.18);transition:background .15s,transform .15s}
   #cbx-btn:hover{background:var(--cbx-olive-d);transform:translateY(-1px)}
   #cbx-btn svg{width:18px;height:18px}
+  #cbx-olivo{width:24px;height:24px;display:inline-flex;flex:0 0 auto}
+  #cbx-olivo svg{width:100%;height:100%;display:block}
+  .cbx-head-l{display:flex;align-items:center;gap:10px;min-width:0}
+  .cbx-ava{width:36px;height:36px;border-radius:50%;flex:0 0 auto;display:block;background:#eef1e3}
   #cbx-panel{position:fixed;top:60px;bottom:16px;right:16px;z-index:9999;width:380px;max-width:calc(100vw - 32px);
     background:var(--cbx-card);border:1px solid var(--cbx-line);
     border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.28);display:none;flex-direction:column;overflow:hidden}
@@ -746,14 +751,17 @@ render();
 </style>
 <div id="cbx-root">
   <button id="cbx-btn" aria-label="Abrir asistente">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    <span id="cbx-olivo" class="cbx-olivo"></span>
     Pregúntame!
   </button>
   <section id="cbx-panel" aria-live="polite">
     <div id="cbx-head">
-      <div>
-        <h3>Pregúntame</h3>
-        <p>Respondo con la información de los documentos</p>
+      <div class="cbx-head-l">
+        <img class="cbx-ava" src="/olivo-icon-badge.svg" alt="Asistente Olivo" role="img" width="36" height="36">
+        <div>
+          <h3>Pregúntame</h3>
+          <p>Respondo con la información de los documentos</p>
+        </div>
       </div>
       <button id="cbx-close" aria-label="Cerrar">&times;</button>
     </div>
@@ -774,6 +782,26 @@ render();
       input=document.getElementById('cbx-input'),
       send=document.getElementById('cbx-send');
   var history=[], busy=false, greeted=false;
+
+  // --- OlivoIcon: módulo reutilizable. Recibe un estado ("idle"|"thinking"|"alert")
+  // e inyecta el SVG correspondiente INLINE (no como background) para que la
+  // animación SMIL del estado "thinking" se ejecute. ---
+  function OlivoIcon(el){
+    var SRC={ idle:'/olivo-icon.svg', thinking:'/olivo-icon-thinking.svg', alert:'/olivo-icon-alert.svg' };
+    var LBL={ idle:'Olivo en reposo', thinking:'Olivo pensando', alert:'Olivo: ha ocurrido un problema' };
+    var cache={};
+    el.setAttribute('role','img');
+    function set(state){
+      if(!SRC[state]) state='idle';
+      el.setAttribute('aria-label', LBL[state]);
+      (cache[state] || (cache[state]=fetch(SRC[state]).then(function(r){return r.text();})))
+        .then(function(svg){ el.innerHTML=svg; var s=el.firstElementChild; if(s) s.setAttribute('aria-hidden','true'); })
+        .catch(function(){});
+    }
+    return { set:set };
+  }
+  var olivo=OlivoIcon(document.getElementById('cbx-olivo'));
+  olivo.set('idle');
 
   function scrollDown(){ msgs.scrollTop=msgs.scrollHeight; }
   function renderMd(raw){
@@ -841,7 +869,7 @@ render();
     addMsg(q,'user');
     history.push({role:'user', content:q});
     input.value=''; input.style.height='auto';
-    busy=true; send.disabled=true;
+    busy=true; send.disabled=true; olivo.set('thinking');
     var typing=document.createElement('div');
     typing.className='cbx-typing'; typing.textContent='Pensando…';
     msgs.appendChild(typing); scrollDown();
@@ -856,11 +884,13 @@ render();
         if(res.j && res.j.answer){
           addMsg(res.j.answer,'bot');
           history.push({role:'assistant', content:res.j.answer});
+          olivo.set('idle');
         } else {
           addMsg((res.j && res.j.error) || 'No he podido responder. Inténtalo de nuevo.','bot');
+          olivo.set('alert');
         }
       })
-      .catch(function(){ typing.remove(); addMsg('Error de conexión. Inténtalo de nuevo.','bot'); })
+      .catch(function(){ typing.remove(); addMsg('Error de conexión. Inténtalo de nuevo.','bot'); olivo.set('alert'); })
       .finally(function(){ busy=false; send.disabled=false; input.focus(); });
   });
 })();
