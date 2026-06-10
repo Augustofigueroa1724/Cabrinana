@@ -51,15 +51,6 @@ function sanitizeMessages(input) {
   return trimmed;
 }
 
-function extractText(data) {
-  if (!data || !Array.isArray(data.content)) return "";
-  return data.content
-    .filter((b) => b.type === "text" && typeof b.text === "string")
-    .map((b) => b.text)
-    .join("\n")
-    .trim();
-}
-
 // GET /api/chat -> estado (cuántos documentos hay cargados)
 export async function onRequestGet() {
   return json({ ready: KB.length > 0, files: FILES, count: FILES.length });
@@ -99,60 +90,88 @@ export async function onRequestPost(context) {
     { type: "text", text: "DOCUMENTOS DISPONIBLES:\n\n" + KB, cache_control: { type: "ephemeral" } },
   ];
 
-  // Bucle por si la búsqueda web agota el límite de iteraciones del servidor (pause_turn).
-  let convo = messages;
-  let data = null;
-  for (let i = 0; i < 4; i++) {
-    const payload = {
-      model,
-      max_tokens: 2048,
-      thinking: { type: "adaptive" },
-      system,
-      messages: convo,
-      tools: [WEB_TOOL],
-    };
-    // El parámetro effort acelera/afina el razonamiento; Haiku no lo admite.
-    if (!/haiku/i.test(model)) payload.output_config = { effort };
+  const payload = {
+    model,
+    max_tokens: 2048,
+    stream: true,
+    thinking: { type: "adaptive" },
+    system,
+    messages,
+    tools: [WEB_TOOL],
+  };
+  // El parámetro effort acelera/afina el razonamiento; Haiku no lo admite.
+  if (!/haiku/i.test(model)) payload.output_config = { effort };
 
-    let resp;
-    try {
-      resp = await fetch(ANTHROPIC_URL, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": ANTHROPIC_VERSION,
-        },
-        body: JSON.stringify(payload),
-      });
-    } catch {
-      return json({ error: "No se pudo contactar con el servicio de IA. Inténtalo de nuevo." }, 502);
-    }
-
-    if (!resp.ok) {
-      const detail = await resp.text().catch(() => "");
-      console.error("Anthropic API error", resp.status, detail);
-      const friendly =
-        resp.status === 401 || resp.status === 403
-          ? "El asistente no está autorizado (revisa la clave de API)."
-          : "El servicio de IA devolvió un error. Inténtalo de nuevo en un momento.";
-      return json({ error: friendly }, 502);
-    }
-
-    data = await resp.json().catch(() => null);
-    if (!data) return json({ error: "Respuesta no válida del servicio de IA." }, 502);
-
-    if (data.stop_reason === "pause_turn" && Array.isArray(data.content)) {
-      convo = convo.concat([{ role: "assistant", content: data.content }]);
-      continue; // reanudar la búsqueda web
-    }
-    break;
+  let resp;
+  try {
+    resp = await fetch(ANTHROPIC_URL, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    return json({ error: "No se pudo contactar con el servicio de IA. Inténtalo de nuevo." }, 502);
   }
 
-  const answer = extractText(data);
-  if (!answer) {
-    return json({ error: "No he podido generar una respuesta. Inténtalo de nuevo." }, 502);
+  if (!resp.ok || !resp.body) {
+    const detail = await resp.text().catch(() => "");
+    console.error("Anthropic API error", resp.status, detail);
+    const friendly =
+      resp.status === 401 || resp.status === 403
+        ? "El asistente no está autorizado (revisa la clave de API)."
+        : "El servicio de IA devolvió un error. Inténtalo de nuevo en un momento.";
+    return json({ error: friendly }, 502);
   }
 
-  return json({ answer });
+  // Reenvía en streaming SOLO el texto del mensaje (ignora razonamiento y herramientas).
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      let buffer = "";
+      let emitted = false;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let nl;
+          while ((nl = buffer.indexOf("\n")) >= 0) {
+            const line = buffer.slice(0, nl).trim();
+            buffer = buffer.slice(nl + 1);
+            if (!line.startsWith("data:")) continue;
+            const raw = line.slice(5).trim();
+            if (!raw || raw === "[DONE]") continue;
+            let evt;
+            try { evt = JSON.parse(raw); } catch { continue; }
+            if (evt.type === "content_block_delta" && evt.delta && evt.delta.type === "text_delta") {
+              emitted = true;
+              controller.enqueue(encoder.encode(evt.delta.text));
+            }
+          }
+        }
+      } catch (err) {
+        console.error("stream error", err);
+      } finally {
+        if (!emitted) {
+          controller.enqueue(encoder.encode("No he podido generar una respuesta. Inténtalo de nuevo."));
+        }
+        controller.close();
+      }
+    },
+    cancel() { try { reader.cancel(); } catch {} },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": "no-store",
+      "x-accel-buffering": "no",
+    },
+  });
 }
