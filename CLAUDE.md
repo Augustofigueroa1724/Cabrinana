@@ -107,3 +107,23 @@ primero intentar Access con tarjeta.
 Zero Trust → Access → Applications → "Cabriñana cuadro de mando" → Policies →
 "Familia Cabriñana" → Edit → editar la regla **Emails** → Save. Efecto inmediato,
 sin tocar código ni redesplegar.
+
+## Troubleshooting: un cambio no aparece en producción
+
+Síntoma (visto 2026-06-10): se hace push a `main` con un cambio visible pero el
+sitio sigue mostrando lo viejo, incluso en incógnito y con `?v=N` (descarta caché).
+
+Causa real: el proyecto de Cloudflare Pages **se había desconectado de GitHub**
+("This project is disconnected from your Git account"), así que los push **no
+disparaban despliegues nuevos** y producción quedaba congelada en el primer deploy.
+
+Diagnóstico/solución:
+1. dash.cloudflare.com (panel normal, NO Zero Trust) → Workers & Pages → `cabrinana`
+   → pestaña **Deployments**. Si no hay despliegues nuevos tras tus push → desconexión.
+2. Settings → Builds & deployments → **Reconnect / Connect to Git** y reautorizar la
+   app de Cloudflare en GitHub para `Augustofigueroa1724/Cabrinana`.
+3. Forzar un deploy: `git commit --allow-empty -m "redeploy" && git push`.
+4. Verificar que aparece una fila nueva en Deployments → Success, y el cambio en el sitio.
+
+Nota: Cloudflare Pages NO usa GitHub Actions (la pestaña Actions queda vacía); usa su
+propia app + webhooks. La señal en GitHub es la sección **Deployments/Environments**.
