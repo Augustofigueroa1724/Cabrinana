@@ -191,7 +191,7 @@
       <table id="cropTable"><thead><tr>
         <th>Cultivo</th><th>Ingreso €</th><th>ha</th><th>kg/ha</th><th>€/kg</th>
         <th>Ingreso €/ha</th><th>Ayudas €/ha</th><th>Gastos €/ha</th>
-        <th>Margen €/ha</th><th>Margen %</th>
+        <th>Margen €/ha</th><th>Margen&nbsp;%</th>
       </tr></thead><tbody id="cropBody"></tbody></table>
     </div>
   </section>
@@ -334,8 +334,8 @@ const nf1={format:v=>_fmt(v,1)};
 const nf4={format:v=>_fmt(v,4)};
 const eur = v => (v==null?'—':_fmt(v,0)+' €');
 const eurHa = v => (v==null?'—':_fmt(v,0));
-const pct = v => (v==null?'—':_fmtP(v,1)+' %');
-const signPct = v => (v==null?'—':(v>0?'+':'')+_fmtP(v,1)+' %');
+const pct = v => (v==null?'—':_fmtP(v,1)+' %');
+const signPct = v => (v==null?'—':(v>0?'+':'')+_fmtP(v,1)+' %');
 
 /* color estable por producto (mismo código en mix y en foco) */
 const PROD_COLORS={
@@ -429,7 +429,7 @@ function renderPyG(){
     return `<tr class="${opt.cls||''}">
       <td>${label}</td>${cells}
       <td>${opt.noDelta?'':dPill}</td>
-      <td class="num">${opt.noVert?'':(vert==null?'—':_fmtP(vert,1)+' %')}</td></tr>`;
+      <td class="num">${opt.noVert?'':(vert==null?'—':_fmtP(vert,1)+' %')}</td></tr>`;
   };
   let h='';
   h+=`<tr class="group"><td colspan="${span}">Ingresos de explotación</td></tr>`;
@@ -511,7 +511,7 @@ function renderCrops(y){
       <td class="num">${eurHa(c.ayudas_ha)}</td>
       <td class="num">${eurHa(gastos)}</td>
       <td class="num ${cls}">${c.neto_ha<0?'-':''}${eurHa(Math.abs(c.neto_ha))}</td>
-      <td class="num ${cls}">${margenPct==null?'—':(margenPct<0?'-':'')+_fmtP(Math.abs(margenPct),1)+' %'}</td>
+      <td class="num ${cls}">${margenPct==null?'—':(margenPct<0?'-':'')+_fmtP(Math.abs(margenPct),1)+' %'}</td>
     </tr>`;
   }).join('');
   const sHa=cult.reduce((s,c)=>s+c.has,0);
@@ -531,7 +531,7 @@ function renderCrops(y){
     <td class="num">${eurHa(sAyu/sHa)}</td>
     <td class="num">${eurHa(sGas/sHa)}</td>
     <td class="num ${tcls}">${sNeto<0?'-':''}${eurHa(Math.abs(sNeto/sHa))}</td>
-    <td class="num ${tcls}">${mPct==null?'—':(mPct<0?'-':'')+_fmtP(Math.abs(mPct),1)+' %'}</td>
+    <td class="num ${tcls}">${mPct==null?'—':(mPct<0?'-':'')+_fmtP(Math.abs(mPct),1)+' %'}</td>
   </tr>`;
   document.getElementById('cropBody').innerHTML = rows + total;
 }
