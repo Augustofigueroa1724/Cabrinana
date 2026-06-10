@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Aceituna pensando">
+  <title>Aceituna pensando</title>
+  <ellipse cx="128" cy="146" rx="70" ry="86" fill="#8b9a44" stroke="#6e7c33" stroke-width="2"/>
+  <ellipse cx="102" cy="118" rx="18" ry="30" fill="#a7b45f" opacity="0.5"/>
+  <circle cx="106" cy="132" r="21" fill="#ffffff"/>
+  <circle cx="150" cy="132" r="21" fill="#ffffff"/>
+  <circle cx="110" cy="126" r="9" fill="#2c2c2c"/>
+  <circle cx="154" cy="126" r="9" fill="#2c2c2c"/>
+  <circle cx="106" cy="123" r="3" fill="#ffffff"/>
+  <circle cx="150" cy="123" r="3" fill="#ffffff"/>
+  <path d="M116 176 Q128 182 140 176" fill="none" stroke="#3f4720" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="150" cy="66" r="6" fill="#6e7c33">
+    <animate attributeName="opacity" values="0.2;1;0.2" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="172" cy="50" r="7.5" fill="#6e7c33">
+    <animate attributeName="opacity" values="0.2;1;0.2" dur="1.4s" begin="0.25s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="194" cy="34" r="9" fill="#6e7c33">
+    <animate attributeName="opacity" values="0.2;1;0.2" dur="1.4s" begin="0.5s" repeatCount="indefinite"/>
+  </circle>
+</svg>

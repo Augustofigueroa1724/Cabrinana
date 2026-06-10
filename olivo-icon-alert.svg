@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Aceituna en alerta">
+  <title>Aceituna en alerta</title>
+  <line x1="128" y1="40" x2="128" y2="62" stroke="#5f7d2e" stroke-width="5" stroke-linecap="round"/>
+  <path d="M128 52 Q104 30 82 46 Q104 60 128 52 Z" fill="#5f7d2e"/>
+  <ellipse cx="128" cy="146" rx="70" ry="86" fill="#8b9a44" stroke="#6e7c33" stroke-width="2"/>
+  <ellipse cx="102" cy="118" rx="18" ry="30" fill="#a7b45f" opacity="0.5"/>
+  <circle cx="106" cy="134" r="21" fill="#ffffff"/>
+  <circle cx="150" cy="134" r="21" fill="#ffffff"/>
+  <circle cx="108" cy="136" r="9.5" fill="#2c2c2c"/>
+  <circle cx="152" cy="136" r="9.5" fill="#2c2c2c"/>
+  <circle cx="105" cy="132" r="3" fill="#ffffff"/>
+  <circle cx="149" cy="132" r="3" fill="#ffffff"/>
+  <path d="M84 106 Q106 90 126 104" fill="none" stroke="#3f4720" stroke-width="5" stroke-linecap="round"/>
+  <path d="M130 104 Q150 90 172 106" fill="none" stroke="#3f4720" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="128" cy="180" rx="9" ry="11" fill="#3f4720"/>
+  <circle cx="198" cy="58" r="26" fill="#e08a00" stroke="#ffffff" stroke-width="3"/>
+  <line x1="198" y1="46" x2="198" y2="62" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="198" cy="70" r="3.5" fill="#ffffff"/>
+</svg>
