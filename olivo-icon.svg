@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Aceituna mascota">
+  <title>Aceituna mascota</title>
+  <line x1="128" y1="40" x2="128" y2="62" stroke="#5f7d2e" stroke-width="5" stroke-linecap="round"/>
+  <path d="M128 52 Q104 30 82 46 Q104 60 128 52 Z" fill="#5f7d2e"/>
+  <ellipse cx="128" cy="146" rx="70" ry="86" fill="#8b9a44" stroke="#6e7c33" stroke-width="2"/>
+  <ellipse cx="102" cy="118" rx="18" ry="30" fill="#a7b45f" opacity="0.5"/>
+  <circle cx="106" cy="132" r="21" fill="#ffffff"/>
+  <circle cx="150" cy="132" r="21" fill="#ffffff"/>
+  <circle cx="110" cy="135" r="9" fill="#2c2c2c"/>
+  <circle cx="154" cy="135" r="9" fill="#2c2c2c"/>
+  <circle cx="106" cy="130" r="3" fill="#ffffff"/>
+  <circle cx="150" cy="130" r="3" fill="#ffffff"/>
+  <path d="M100 170 Q128 198 156 170" fill="none" stroke="#3f4720" stroke-width="4.5" stroke-linecap="round"/>
+</svg>
