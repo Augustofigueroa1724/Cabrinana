@@ -885,34 +885,18 @@ render();
       method:'POST',
       headers:{'content-type':'application/json'},
       body:JSON.stringify({messages:history.slice(-12)})
-    }).then(function(resp){
-      var ct=resp.headers.get('content-type')||'';
-      if(!resp.ok || ct.indexOf('application/json')>=0){           // respuestas JSON (error o sin documentos)
+    }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+      .then(function(res){
         if(typing.parentNode) typing.remove();
-        return resp.json().catch(function(){return {};}).then(function(j){
-          if(j.answer){ addMsg(j.answer,'bot'); history.push({role:'assistant',content:j.answer}); setState('idle'); }
-          else { addMsg(j.error||'No he podido responder. Inténtalo de nuevo.','bot'); setState('alert'); }
-        });
-      }
-      var reader=resp.body.getReader(), dec=new TextDecoder(), full='', d=null;   // streaming de texto
-      function read(){
-        return reader.read().then(function(r){
-          if(r.done){
-            if(typing.parentNode) typing.remove();
-            if(d){ d.innerHTML=renderBot(full); history.push({role:'assistant',content:full}); setState('idle'); }
-            else { addMsg('No he podido responder. Inténtalo de nuevo.','bot'); setState('alert'); }
-            scrollDown(); return;
-          }
-          var chunk=dec.decode(r.value,{stream:true});
-          if(chunk){
-            if(!d){ if(typing.parentNode) typing.remove(); d=document.createElement('div'); d.className='cbx-msg cbx-bot'; msgs.appendChild(d); }
-            full+=chunk; d.textContent=full; scrollDown();
-          }
-          return read();
-        });
-      }
-      return read();
-    })
+        if(res.j && res.j.answer){
+          addMsg(res.j.answer,'bot');
+          history.push({role:'assistant', content:res.j.answer});
+          setState('idle');
+        } else {
+          addMsg((res.j && res.j.error) || 'No he podido responder. Inténtalo de nuevo.','bot');
+          setState('alert');
+        }
+      })
       .catch(function(){ if(typing.parentNode) typing.remove(); addMsg('Error de conexión. Inténtalo de nuevo.','bot'); setState('alert'); })
       .finally(function(){ busy=false; send.disabled=false; input.focus(); });
   });
