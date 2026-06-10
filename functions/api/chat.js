@@ -93,6 +93,7 @@ export async function onRequestPost(context) {
   }
 
   const model = env.CHAT_MODEL || DEFAULT_MODEL;
+  const effort = env.CHAT_EFFORT || "low"; // low = más rápido; medium/high = más fino
   const system = [
     { type: "text", text: INSTRUCTIONS },
     { type: "text", text: "DOCUMENTOS DISPONIBLES:\n\n" + KB, cache_control: { type: "ephemeral" } },
@@ -106,6 +107,7 @@ export async function onRequestPost(context) {
       model,
       max_tokens: 2048,
       thinking: { type: "adaptive" },
+      output_config: { effort },
       system,
       messages: convo,
       tools: [WEB_TOOL],
