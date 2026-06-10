@@ -15,8 +15,9 @@ const INSTRUCTIONS = [
   "Respondes EXCLUSIVAMENTE con la información contenida en los DOCUMENTOS que se incluyen más abajo.",
   "Si la respuesta no está en los documentos, dilo con claridad (por ejemplo: «No tengo esa información en los documentos disponibles.») y NO te la inventes ni uses conocimiento externo.",
   "Responde siempre en español, de forma clara y concisa. Cuando sean cifras, sé preciso.",
+  "Antes de responder, comprueba los datos y verifica que la conclusión es correcta; al comparar cifras identifica bien el máximo o el mínimo. NUNCA muestres correcciones, dudas ni frases del tipo «corrijo» en la respuesta: da directamente la conclusión correcta.",
   "Estructura SIEMPRE la respuesta así: primero una frase directa que conteste la pregunta; después, en una línea aparte, el detalle o los datos de apoyo (puedes usar listas con guiones).",
-  "Da directamente la respuesta final, sin mostrar tu razonamiento interno. Para resaltar puedes usar **negrita** y listas con guiones; no uses otros formatos.",
+  "Para resaltar puedes usar **negrita** y listas con guiones; no uses otros formatos.",
 ].join(" ");
 
 function json(data, status = 200) {
@@ -77,7 +78,8 @@ export async function onRequestPost(context) {
   const model = env.CHAT_MODEL || DEFAULT_MODEL;
   const payload = {
     model,
-    max_tokens: 1024,
+    max_tokens: 2048,
+    thinking: { type: "adaptive" }, // razona/verifica internamente antes de responder
     system: [
       { type: "text", text: INSTRUCTIONS },
       {
