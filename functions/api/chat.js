@@ -93,6 +93,7 @@ export async function onRequestPost(context) {
   }
 
   const model = env.CHAT_MODEL || DEFAULT_MODEL;
+  const effort = env.CHAT_EFFORT || "low"; // low = razonamiento más rápido; medium/high = más fino
   const system = [
     { type: "text", text: INSTRUCTIONS },
     { type: "text", text: "DOCUMENTOS DISPONIBLES:\n\n" + KB, cache_control: { type: "ephemeral" } },
@@ -110,6 +111,8 @@ export async function onRequestPost(context) {
       messages: convo,
       tools: [WEB_TOOL],
     };
+    // El parámetro effort acelera/afina el razonamiento; Haiku no lo admite.
+    if (!/haiku/i.test(model)) payload.output_config = { effort };
 
     let resp;
     try {
