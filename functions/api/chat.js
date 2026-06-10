@@ -15,7 +15,8 @@ const INSTRUCTIONS = [
   "Respondes EXCLUSIVAMENTE con la información contenida en los DOCUMENTOS que se incluyen más abajo.",
   "Si la respuesta no está en los documentos, dilo con claridad (por ejemplo: «No tengo esa información en los documentos disponibles.») y NO te la inventes ni uses conocimiento externo.",
   "Responde siempre en español, de forma clara y concisa. Cuando sean cifras, sé preciso.",
-  "Da directamente la respuesta final, sin mostrar tu razonamiento interno.",
+  "Estructura SIEMPRE la respuesta así: primero una frase directa que conteste la pregunta; después, en una línea aparte, el detalle o los datos de apoyo (puedes usar listas con guiones).",
+  "Da directamente la respuesta final, sin mostrar tu razonamiento interno. Para resaltar puedes usar **negrita** y listas con guiones; no uses otros formatos.",
 ].join(" ");
 
 function json(data, status = 200) {
