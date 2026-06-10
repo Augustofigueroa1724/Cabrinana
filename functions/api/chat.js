@@ -9,7 +9,7 @@ import { KB, FILES } from "./kb.js";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
-const DEFAULT_MODEL = "claude-opus-4-8"; // override con CHAT_MODEL
+const DEFAULT_MODEL = "claude-sonnet-4-6"; // rápido y capaz; override con CHAT_MODEL (opus = más calidad, haiku = más rápido)
 const MAX_TURNS = 12;
 const MAX_CHARS = 4000;
 const WEB_TOOL = { type: "web_search_20260209", name: "web_search", max_uses: 5 };
