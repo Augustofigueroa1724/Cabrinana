@@ -59,6 +59,8 @@
   .s-head{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap}
   .s-head h2{font-family:"Fraunces",serif;font-weight:600;font-size:23px;letter-spacing:-.01em}
   .s-head .s-note{font-size:12.5px;color:var(--ink-soft)}
+  .s-head .s-title{display:flex;flex-direction:column;gap:2px}
+  .s-head .s-sub{font-size:12.5px;color:var(--ink-soft);font-weight:400}
   .s-head .rule{flex:1 1 0;height:1px;background:var(--line-2);align-self:center;min-width:0}
   .card{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -156,7 +158,10 @@
 
   <section>
     <div class="s-head">
-      <h2>Cuenta de pérdidas y ganancias</h2>
+      <div class="s-title">
+        <h2>Cuenta de pérdidas y ganancias</h2>
+        <span class="s-sub">(Cifras en euros)</span>
+      </div>
       <span class="s-note">Formato analítico · % vertical sobre ingresos totales · crecimiento interanual</span>
       <span class="rule"></span>
     </div>
@@ -414,7 +419,7 @@ function renderPyG(){
   const span=yearsAsc.length+3;
   const row=(label,key,opt)=>{
     opt=opt||{};
-    const cells=yearsAsc.map(y=>`<td class="num"${y===current?' style="font-weight:600"':''}>${eur(M[y][key])}</td>`).join('');
+    const cells=yearsAsc.map(y=>`<td class="num"${y===current?' style="font-weight:600"':''}>${eurHa(M[y][key])}</td>`).join('');
     const cur=c[key]; const old=pv?pv[key]:null;
     let d=(cur==null||old==null||old===0)?null:(cur-old)/Math.abs(old)*100;
     const vert = (cur==null)?null:cur/c.ingresos*100;
@@ -464,7 +469,7 @@ function renderCF(){
       socios_capex:cf.capex_inkind, socios_otros:socios-cf.capex_inkind};
   });
   const r=(label,key,cls,ind)=>`<tr class="${cls||''}"><td${ind?' style="padding-left:30px;font-weight:400;color:var(--ink-soft)"':''}>${label}</td>`+
-    ys.map(y=>`<td class="num"${ind?' style="color:var(--ink-soft)"':''}>${eur(M[y][key])}</td>`).join('')+`</tr>`;
+    ys.map(y=>`<td class="num"${ind?' style="color:var(--ink-soft)"':''}>${eurHa(M[y][key])}</td>`).join('')+`</tr>`;
   let h='';
   h+=r('Caja al inicio del ejercicio','cajaIni','subtotal');
   h+=r('Resultado de explotación','bExpl');
@@ -497,7 +502,7 @@ function renderCrops(y){
     const cls=c.neto_ha>=0?'pos':'neg';
     return `<tr>
       <td>${c.n}</td>
-      <td class="num">${eur(c.ing_ha*c.has)}</td>
+      <td class="num">${eurHa(c.ing_ha*c.has)}</td>
       <td class="num">${nf1.format(c.has)}</td>
       <td class="num">${c.kg_ha>0?nf0.format(c.kg_ha):'—'}</td>
       <td class="num">${c.precio>0?nf4.format(c.precio):'—'}</td>
@@ -517,7 +522,7 @@ function renderCrops(y){
   const tcls=sNeto>=0?'pos':'neg';
   const total=`<tr class="total">
     <td>Total / media</td>
-    <td class="num">${eur(sIng)}</td>
+    <td class="num">${eurHa(sIng)}</td>
     <td class="num">${nf1.format(sHa)}</td>
     <td class="num">—</td>
     <td class="num">—</td>
