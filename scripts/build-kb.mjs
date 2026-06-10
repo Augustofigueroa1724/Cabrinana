@@ -5,7 +5,8 @@ import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 
 const ROOT = process.cwd();
-const DOCS_DIR = path.join(ROOT, "docs");
+// Acepta tanto docs/ como Docs/ (Linux distingue mayúsculas) por si se sube a cualquiera.
+const DOCS_DIRS = ["docs", "Docs"];
 const OUT_FILE = path.join(ROOT, "functions", "api", "kb.js");
 
 async function extractPdf(buffer) {
@@ -22,12 +23,18 @@ async function extractDocx(buffer) {
 }
 
 async function listDocs() {
-  try {
-    const entries = await readdir(DOCS_DIR, { withFileTypes: true });
-    return entries.filter((e) => e.isFile()).map((e) => e.name);
-  } catch {
-    return [];
+  const found = new Map(); // nombre -> ruta completa (dedupe entre docs/ y Docs/)
+  for (const dir of DOCS_DIRS) {
+    try {
+      const entries = await readdir(path.join(ROOT, dir), { withFileTypes: true });
+      for (const e of entries) {
+        if (e.isFile() && !found.has(e.name)) found.set(e.name, path.join(ROOT, dir, e.name));
+      }
+    } catch {
+      // carpeta inexistente: ignorar
+    }
   }
+  return [...found.entries()].map(([name, full]) => ({ name, full }));
 }
 
 function cleanText(t) {
@@ -35,14 +42,13 @@ function cleanText(t) {
 }
 
 async function main() {
-  const names = await listDocs();
+  const docs = await listDocs();
   const parts = [];
   const files = [];
 
-  for (const name of names) {
+  for (const { name, full } of docs) {
     if (name.toLowerCase() === "readme.md") continue; // nota de instrucciones, no es fuente
     const ext = path.extname(name).toLowerCase();
-    const full = path.join(DOCS_DIR, name);
     try {
       let text = "";
       if (ext === ".pdf") {
