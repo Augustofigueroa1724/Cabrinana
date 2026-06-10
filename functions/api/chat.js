@@ -1,20 +1,28 @@
 // Cloudflare Pages Function — POST /api/chat
-// Responde preguntas en español usando SOLO el contexto de los documentos de /docs.
-// La clave de Anthropic se lee del entorno (secreto), nunca va en el HTML.
-// Esta ruta queda protegida por Cloudflare Access igual que el resto del sitio.
+// Responde en español. Dos fuentes con separación estricta:
+//   1) DOCUMENTOS de /docs  -> únicos datos de la explotación Cabriñana.
+//   2) Búsqueda web (herramienta nativa de Anthropic) -> SOLO contexto agrícola
+//      general: precios de mercado, subvenciones/PAC, normativa y tendencias.
+// Ningún dato de la explotación puede venir de internet.
+// La clave de Anthropic se lee del entorno (secreto). Ruta protegida por Access.
 import { KB, FILES } from "./kb.js";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
-const DEFAULT_MODEL = "claude-opus-4-8"; // calidad máxima; cambiar con CHAT_MODEL si se quiere abaratar
+const DEFAULT_MODEL = "claude-opus-4-8"; // override con CHAT_MODEL
 const MAX_TURNS = 12;
 const MAX_CHARS = 4000;
+const WEB_TOOL = { type: "web_search_20260209", name: "web_search", max_uses: 5 };
 
 const INSTRUCTIONS = [
-  "Eres el asistente del cuadro de mando financiero de Cabriñana.",
-  "Respondes EXCLUSIVAMENTE con la información contenida en los DOCUMENTOS que se incluyen más abajo.",
-  "Si la respuesta no está en los documentos, dilo con claridad (por ejemplo: «No tengo esa información en los documentos disponibles.») y NO te la inventes ni uses conocimiento externo.",
-  "Responde siempre en español, de forma clara y concisa. Cuando sean cifras, sé preciso.",
+  "Eres el asistente del cuadro de mando financiero de la explotación agrícola Cabriñana.",
+  "Tienes DOS fuentes de información y debes mantenerlas separadas con rigor:",
+  "(1) Los DOCUMENTOS de la explotación que aparecen más abajo. (2) La búsqueda web.",
+  "REGLA ABSOLUTA: cualquier dato concreto de la explotación Cabriñana (resultados, cuenta de pérdidas y ganancias, ingresos, gastos, subvenciones cobradas, rendimientos, márgenes, superficies, precios obtenidos o cualquier cifra propia) procede ÚNICAMENTE de los DOCUMENTOS. NUNCA busques en internet datos de la explotación ni uses información externa para responder sobre nuestras cifras. Si un dato de la explotación no está en los documentos, di que no está disponible; no lo busques fuera ni lo inventes.",
+  "Usa la búsqueda web SOLO para contexto agrícola general y de mercado: precios y cotizaciones de productos (trigo duro, cebada, avena, aceite de oliva, etc.), subvenciones y PAC, normativa agraria, clima/campaña a nivel sectorial, y tendencias o noticias del sector. Para esos temas, busca información actual.",
+  "Cuando un dato venga de internet, deja claro que es información externa/de mercado y nunca lo presentes como si fuera de la explotación. Cuando combines ambas fuentes, separa claramente lo nuestro (documentos) de lo del mercado (web).",
+  "No respondas temas ajenos a la agricultura o a la explotación; si te preguntan algo fuera de ese ámbito, indícalo brevemente.",
+  "Responde siempre en español, de forma clara y concisa. Con cifras, sé preciso.",
   "Antes de responder, comprueba los datos y verifica que la conclusión es correcta; al comparar cifras identifica bien el máximo o el mínimo. NUNCA muestres correcciones, dudas ni frases del tipo «corrijo» en la respuesta: da directamente la conclusión correcta.",
   "Estructura SIEMPRE la respuesta así: primero una frase directa que conteste la pregunta; después, en una línea aparte, el detalle o los datos de apoyo (puedes usar listas con guiones).",
   "Para resaltar puedes usar **negrita** y listas con guiones; no uses otros formatos.",
@@ -38,10 +46,18 @@ function sanitizeMessages(input) {
     if (!content) continue;
     out.push({ role, content });
   }
-  // Quedarnos con los últimos turnos y asegurar que empieza por user.
   const trimmed = out.slice(-MAX_TURNS);
   while (trimmed.length && trimmed[0].role !== "user") trimmed.shift();
   return trimmed;
+}
+
+function extractText(data) {
+  if (!data || !Array.isArray(data.content)) return "";
+  return data.content
+    .filter((b) => b.type === "text" && typeof b.text === "string")
+    .map((b) => b.text)
+    .join("\n")
+    .trim();
 }
 
 // GET /api/chat -> estado (cuántos documentos hay cargados)
@@ -71,58 +87,66 @@ export async function onRequestPost(context) {
   if (!KB) {
     return json({
       answer:
-        "Todavía no hay documentos cargados en la carpeta /docs, así que no tengo información sobre la que responder. " +
+        "Todavía no hay documentos cargados en la carpeta /docs, así que no tengo información de la explotación. " +
         "Sube los documentos (PDF o Word) a /docs y vuelve a intentarlo.",
     });
   }
 
   const model = env.CHAT_MODEL || DEFAULT_MODEL;
-  const payload = {
-    model,
-    max_tokens: 2048,
-    thinking: { type: "adaptive" }, // razona/verifica internamente antes de responder
-    system: [
-      { type: "text", text: INSTRUCTIONS },
-      {
-        type: "text",
-        text: "DOCUMENTOS DISPONIBLES:\n\n" + KB,
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    messages,
-  };
+  const system = [
+    { type: "text", text: INSTRUCTIONS },
+    { type: "text", text: "DOCUMENTOS DISPONIBLES:\n\n" + KB, cache_control: { type: "ephemeral" } },
+  ];
 
-  let resp;
-  try {
-    resp = await fetch(ANTHROPIC_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": ANTHROPIC_VERSION,
-      },
-      body: JSON.stringify(payload),
-    });
-  } catch {
-    return json({ error: "No se pudo contactar con el servicio de IA. Inténtalo de nuevo." }, 502);
+  // Bucle por si la búsqueda web agota el límite de iteraciones del servidor (pause_turn).
+  let convo = messages;
+  let data = null;
+  for (let i = 0; i < 4; i++) {
+    const payload = {
+      model,
+      max_tokens: 2048,
+      thinking: { type: "adaptive" },
+      system,
+      messages: convo,
+      tools: [WEB_TOOL],
+    };
+
+    let resp;
+    try {
+      resp = await fetch(ANTHROPIC_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": ANTHROPIC_VERSION,
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      return json({ error: "No se pudo contactar con el servicio de IA. Inténtalo de nuevo." }, 502);
+    }
+
+    if (!resp.ok) {
+      const detail = await resp.text().catch(() => "");
+      console.error("Anthropic API error", resp.status, detail);
+      const friendly =
+        resp.status === 401 || resp.status === 403
+          ? "El asistente no está autorizado (revisa la clave de API)."
+          : "El servicio de IA devolvió un error. Inténtalo de nuevo en un momento.";
+      return json({ error: friendly }, 502);
+    }
+
+    data = await resp.json().catch(() => null);
+    if (!data) return json({ error: "Respuesta no válida del servicio de IA." }, 502);
+
+    if (data.stop_reason === "pause_turn" && Array.isArray(data.content)) {
+      convo = convo.concat([{ role: "assistant", content: data.content }]);
+      continue; // reanudar la búsqueda web
+    }
+    break;
   }
 
-  if (!resp.ok) {
-    const detail = await resp.text().catch(() => "");
-    console.error("Anthropic API error", resp.status, detail);
-    const friendly =
-      resp.status === 401 || resp.status === 403
-        ? "El asistente no está autorizado (revisa la clave de API)."
-        : "El servicio de IA devolvió un error. Inténtalo de nuevo en un momento.";
-    return json({ error: friendly }, 502);
-  }
-
-  const data = await resp.json().catch(() => null);
-  const answer =
-    data && Array.isArray(data.content)
-      ? data.content.filter((b) => b.type === "text").map((b) => b.text).join("\n").trim()
-      : "";
-
+  const answer = extractText(data);
   if (!answer) {
     return json({ error: "No he podido generar una respuesta. Inténtalo de nuevo." }, 502);
   }

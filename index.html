@@ -701,11 +701,11 @@ render();
 <style>
   #cbx-root{--cbx-olive:#5C6B36;--cbx-olive-d:#454f28;--cbx-cream:#F4F1EA;--cbx-card:#fff;--cbx-ink:#2b2a26;--cbx-soft:#6f6b60;--cbx-line:#e6e1d4;
     font-family:"IBM Plex Sans",system-ui,sans-serif}
-  #cbx-btn{position:fixed;top:16px;right:150px;z-index:9998;display:inline-flex;align-items:center;gap:8px;
+  #cbx-btn{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9998;display:inline-flex;align-items:center;gap:8px;
     background:#fff;color:var(--cbx-olive);border:1px solid var(--cbx-line);border-radius:32px;padding:6px 18px 6px 8px;
     font-family:"IBM Plex Sans",sans-serif;font-size:15px;font-weight:600;cursor:pointer;
     box-shadow:0 4px 16px rgba(0,0,0,.18);transition:background .15s,transform .15s}
-  #cbx-btn:hover{background:#faf8f2;transform:translateY(-1px)}
+  #cbx-btn:hover{background:#faf8f2;transform:translateX(-50%) translateY(-1px)}
   #cbx-btn svg{width:18px;height:18px}
   #cbx-olivo{width:52px;height:52px;display:inline-flex;flex:0 0 auto}
   #cbx-olivo svg{width:100%;height:100%;display:block}
