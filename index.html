@@ -710,7 +710,8 @@ render();
   #cbx-olivo{width:52px;height:52px;display:inline-flex;flex:0 0 auto}
   #cbx-olivo svg{width:100%;height:100%;display:block}
   .cbx-head-l{display:flex;align-items:center;gap:10px;min-width:0}
-  .cbx-ava{width:36px;height:36px;border-radius:50%;flex:0 0 auto;display:block;background:#eef1e3}
+  .cbx-ava{width:36px;height:36px;border-radius:50%;flex:0 0 auto;display:flex;overflow:hidden;background:#eef1e3}
+  #cbx-ava svg{width:100%;height:100%;display:block}
   #cbx-panel{position:fixed;top:60px;bottom:16px;right:16px;z-index:9999;width:380px;max-width:calc(100vw - 32px);
     background:var(--cbx-card);border:1px solid var(--cbx-line);
     border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.28);display:none;flex-direction:column;overflow:hidden}
@@ -748,7 +749,8 @@ render();
   @media (max-width:600px){
     #cbx-btn{left:auto;right:14px;transform:none}
     #cbx-btn:hover{transform:translateY(-1px)}
-    #cbx-panel{top:0;right:0;bottom:0;left:0;width:auto;max-width:none;height:auto;max-height:none;border-radius:0}
+    #cbx-panel{top:8px;right:8px;bottom:8px;left:8px;width:auto;max-width:none;height:auto;max-height:none;border-radius:14px;box-sizing:border-box}
+    .cbx-msg{max-width:90%}
   }
 </style>
 <div id="cbx-root">
@@ -759,7 +761,7 @@ render();
   <section id="cbx-panel" aria-live="polite">
     <div id="cbx-head">
       <div class="cbx-head-l">
-        <img class="cbx-ava" src="/olivo-icon-badge.svg" alt="Asistente Olivo" role="img" width="36" height="36">
+        <span class="cbx-ava" id="cbx-ava" role="img" aria-label="Asistente Olivo"></span>
         <div>
           <h3>Pregúntame</h3>
           <p>Respondo con la información de los documentos</p>
@@ -788,8 +790,9 @@ render();
   // --- OlivoIcon: módulo reutilizable. Recibe un estado ("idle"|"thinking"|"alert")
   // e inyecta el SVG correspondiente INLINE (no como background) para que la
   // animación SMIL del estado "thinking" se ejecute. ---
-  function OlivoIcon(el){
-    var SRC={ idle:'/olivo-icon.svg', thinking:'/olivo-icon-thinking.svg', alert:'/olivo-icon-alert.svg' };
+  function OlivoIcon(el, opts){
+    opts = opts || {};
+    var SRC={ idle:opts.idle||'/olivo-icon.svg', thinking:'/olivo-icon-thinking.svg', alert:'/olivo-icon-alert.svg' };
     var LBL={ idle:'Olivo en reposo', thinking:'Olivo pensando', alert:'Olivo: ha ocurrido un problema' };
     var cache={};
     el.setAttribute('role','img');
@@ -803,7 +806,9 @@ render();
     return { set:set };
   }
   var olivo=OlivoIcon(document.getElementById('cbx-olivo'));
-  olivo.set('idle');
+  var olivoHead=OlivoIcon(document.getElementById('cbx-ava'), {idle:'/olivo-icon-badge.svg'});
+  function setState(s){ olivo.set(s); olivoHead.set(s); }
+  setState('idle');
 
   function scrollDown(){ msgs.scrollTop=msgs.scrollHeight; }
   function renderMd(raw){
@@ -871,7 +876,7 @@ render();
     addMsg(q,'user');
     history.push({role:'user', content:q});
     input.value=''; input.style.height='auto';
-    busy=true; send.disabled=true; olivo.set('thinking');
+    busy=true; send.disabled=true; setState('thinking');
     var typing=document.createElement('div');
     typing.className='cbx-typing'; typing.textContent='Pensando…';
     msgs.appendChild(typing); scrollDown();
@@ -886,13 +891,13 @@ render();
         if(res.j && res.j.answer){
           addMsg(res.j.answer,'bot');
           history.push({role:'assistant', content:res.j.answer});
-          olivo.set('idle');
+          setState('idle');
         } else {
           addMsg((res.j && res.j.error) || 'No he podido responder. Inténtalo de nuevo.','bot');
-          olivo.set('alert');
+          setState('alert');
         }
       })
-      .catch(function(){ typing.remove(); addMsg('Error de conexión. Inténtalo de nuevo.','bot'); olivo.set('alert'); })
+      .catch(function(){ typing.remove(); addMsg('Error de conexión. Inténtalo de nuevo.','bot'); setState('alert'); })
       .finally(function(){ busy=false; send.disabled=false; input.focus(); });
   });
 })();
