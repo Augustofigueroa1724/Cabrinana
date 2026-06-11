@@ -188,3 +188,35 @@ redespliegue. La clave la crea en https://console.anthropic.com (requiere saldo)
 El **build command** `npm run build:kb` es opcional (solo para reprocesar `docs/`
 automáticamente al cambiarlos; si no, se regenera `kb.js` a mano con OCR cuando
 toque).
+
+### Estado e iteraciones (2026-06-11) — chatbot operativo
+
+`ANTHROPIC_API_KEY` ya configurada en Cloudflare → **el chatbot responde**.
+
+Cambios de esta sesión:
+- **Modelo por defecto: `claude-sonnet-4-6`** (antes Opus). Más rápido y suficiente
+  para Q&A sobre documentos. Override con la variable **`CHAT_MODEL`**
+  (`claude-opus-4-8` = más calidad/lento; `claude-haiku-4-5` = más rápido).
+- **`output_config:{effort}`** configurable con **`CHAT_EFFORT`** (por defecto `low`
+  = razonamiento más rápido). Se omite automáticamente si el modelo es Haiku
+  (Haiku no admite effort).
+- **Streaming (texto en vivo)**: `stream:true` en la API; la función reenvía solo
+  los `text_delta` (ignora thinking y herramientas) como `text/plain`; el frontend
+  lee el `ReadableStream` y va pintando, y al terminar aplica formato/gráficos
+  (`renderBot`). Red de seguridad: si no llega texto, emite un mensaje visible (no
+  se queda mudo). La lógica de parseo SSE se probó en local antes de subir.
+- **Móvil**: botón a la derecha (`@media max-width:600px`), panel como tarjeta con
+  márgenes (sin desbordar el ancho), input a **16px** (evita el zoom automático de
+  iOS al enfocar) con `min-width:0` (botón "Enviar" visible), avatar de la cabecera
+  con estado (se ve la aceituna "pensando" dentro del chat), y `%` con espacio duro
+  (` `) en las tablas para que no salte de línea.
+
+### Lección importante de despliegue (2026-06-11)
+
+Durante la sesión hubo varios "error de conexión" / "no he podido responder" que
+parecían bugs del chat pero eran **problemas de GitHub/Cloudflare** (push con 503
+intermitentes y Cloudflare sirviendo un deploy viejo/roto al no recibir el webhook).
+Se revirtieron por error mejoras de velocidad creyéndolas culpables. Aprendizaje:
+ante un fallo del chat, **descartar primero el despliegue** (¿hay un deploy nuevo en
+Success en Cloudflare? ¿la API de Anthropic responde? ¿hay saldo?) antes de tocar el
+código. La API de Anthropic se comprueba con un POST sin clave: un `401` = está viva.

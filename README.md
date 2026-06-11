@@ -60,14 +60,17 @@ un chat. Responde en español con dos fuentes bien separadas:
 - **Contexto agrícola/mercado** (precios, PAC/subvenciones, normativa, tendencias):
   puede consultarlo por **búsqueda web**.
 
-Funciones: respuesta directa primero + detalle, **negrita y listas**, y
-**gráficos de barras** cuando compara series. La mascota cambia de estado
-(reposo / pensando / aviso) según el chat.
+Funciones: **respuesta en vivo** (el texto aparece según se genera, *streaming*),
+respuesta directa primero + detalle, **negrita y listas**, y **gráficos de barras**
+cuando compara series. La mascota cambia de estado (reposo / pensando / aviso).
 
 - **Frontend:** widget embebido al final del HTML + 5 SVG de la mascota en la raíz.
 - **Backend:** `functions/api/chat.js` (Cloudflare Pages Function) que llama a la
-  API de Claude (Anthropic) con la herramienta de búsqueda web. La clave va como
-  **secreto** del proyecto, nunca en el HTML. La ruta queda protegida por Access.
+  API de Claude (Anthropic) en *streaming*, con la herramienta de búsqueda web. La
+  clave va como **secreto** del proyecto, nunca en el HTML. Ruta protegida por Access.
+  - Modelo por defecto **`claude-sonnet-4-6`** (rápido). Variables opcionales:
+    **`CHAT_MODEL`** (`claude-opus-4-8` = más calidad; `claude-haiku-4-5` = más
+    rápido) y **`CHAT_EFFORT`** (`low`/`medium`/`high`, por defecto `low`).
 - **Documentos:** `scripts/build-kb.mjs` extrae el texto de `docs/` y lo deja en
   `functions/api/kb.js` (ya commiteado con el contenido actual, OCR incluido).
 
